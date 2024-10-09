@@ -1,5 +1,5 @@
-#include "wifi_web.h"
-#include "soil_sensor.h"
+//#include "wifi_web.h"
+//#include "soil_sensor.h"
 #include "esp_log.h"
 #include "esp_wifi.h"
 #include "nvs_flash.h"
