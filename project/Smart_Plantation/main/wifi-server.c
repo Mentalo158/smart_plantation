@@ -5,7 +5,7 @@
 
 // WiFi-Verbindungsdaten
 const char *ssid = "FH-Kiel-IoT-NAT";
-const char *pass = "!FH-NAT-001";
+const char *pass = "!FH-NAT-001!";
 int retry_num = 0;
 
 httpd_handle_t start_webserver(void);
@@ -84,7 +84,7 @@ void wifi_connection() {
     wifi_config_t wifi_configuration = {
             .sta = {
                     .ssid = "FH-Kiel-IoT-NAT",
-                    .password = "!FH-NAT-001",
+                    .password = "!FH-NAT-001!",
             }
     };
 
