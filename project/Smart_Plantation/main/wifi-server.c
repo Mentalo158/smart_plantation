@@ -24,8 +24,11 @@ static void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_b
             retry_num++;
             printf("Retrying to Connect...\n");
         }
+        //ChatGPT hat geholfen die IP auszugeben
     } else if (event_id == IP_EVENT_STA_GOT_IP) {
-        printf("Wifi got IP...\n\n");
+        ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
+        printf("Wifi got IP...\n");
+        printf("IP is: " IPSTR "\n", IP2STR(&event->ip_info.ip));
     }
 }
 
