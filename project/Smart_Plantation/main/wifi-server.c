@@ -1,5 +1,4 @@
-#include "wifi_web.h"
-#include "soil_sensor.h"
+#include "wifi-server.h"
 #include "esp_log.h"
 #include "esp_wifi.h"
 #include "nvs_flash.h"
@@ -32,7 +31,6 @@ static void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_b
 
 // HTML CODE
 esp_err_t custom_handler(httpd_req_t *req) {
-    int moisture = getSoilMoisture();
     const char *html_head = "<html><head><style>"
                             "body {font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background-color: #2c3e50; color: #ecf0f1;}"
                             "h1 {color: #3498db;}"
@@ -46,22 +44,20 @@ esp_err_t custom_handler(httpd_req_t *req) {
 
                             "<div id=\"moistureBar\">"
                             "  <div id=\"moistureProgress\" style=\"width: %d%%;\"></div>"
-                            "</div>"
-
+                            "</div>";
 
     const char *html_end = "</body></html>";
 
     // Dynamische Size
-    size_t content_size = strlen(html_head) + strlen(html_moisture_script) + strlen(html_end) + 20;
+    size_t content_size = strlen(html_head) + strlen(html_end) + 20;
     char *content = (char *)malloc(content_size);
     if (content == NULL) {
         ESP_LOGE("main", "Failed to allocate memory for HTML content");
         httpd_resp_send_500(req);
         return ESP_FAIL;
     }
-
+    sprintf(content, html_head, 50);
     httpd_resp_send(req, content, HTTPD_RESP_USE_STRLEN);
-
     free(content);
 
     return ESP_OK;
@@ -87,8 +83,8 @@ void wifi_connection() {
 
     wifi_config_t wifi_configuration = {
             .sta = {
-                    .ssid = "O2",
-                    .password = "T7YUCVBACHPA2YA6",
+                    .ssid = "FH-Kiel-IoT-NAT",
+                    .password = "!FH-NAT-001",
             }
     };
 
@@ -108,13 +104,9 @@ httpd_handle_t start_webserver(void) {
 
     if (httpd_start(&server, &config) == ESP_OK) {
         httpd_register_uri_handler(server, &custom_uri);
-        httpd_register_uri_handler(server, &start_pump_uri);
-        httpd_register_uri_handler(server, &stop_pump_uri);
-        httpd_register_uri_handler(server, &get_moisture_uri);
         return server;
     }
 
     ESP_LOGI("WebServer", "Error starting server!");
     return NULL;
 }
-

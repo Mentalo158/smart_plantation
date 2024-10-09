@@ -11,5 +11,5 @@
 void app_main(void)
 {
     wifi_connection();
-    //xTaskCreatePinnedToCore(&web_server_task, "web_server_task", 4096, NULL, 5, NULL, 1);
+    start_webserver();
 }

@@ -7,9 +7,8 @@
 #include "freertos/queue.h"
 #include "esp_event.h"
 #include "esp_http_server.h"
-#include "soil_sensor.h"
 
-void wifi_connection();
-void web_server_task(void *pvParameter);
+void wifi_connection(void);
+httpd_handle_t start_webserver(void);
 
 #endif  // WIFI_WEB_H
