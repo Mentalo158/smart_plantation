@@ -16,6 +16,7 @@
     "files.associations": {
         "*.embeddedhtml": "html",
         "*.ejs": "html",
-        "freertos.h": "c"
+        "freertos.h": "c",
+        "adc.h": "c"
     }
 }
