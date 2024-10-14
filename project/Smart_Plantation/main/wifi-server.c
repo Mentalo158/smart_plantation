@@ -2,80 +2,113 @@
 #include "esp_log.h"
 #include "esp_wifi.h"
 #include "nvs_flash.h"
+#include "sdkconfig.h"
 
-// WiFi-Verbindungsdaten
-const char *ssid = "FH-Kiel-IoT-NAT";
-const char *pass = "!FH-NAT-001!";
+const char *ssid = CONFIG_WIFI_SSID;
+const char *pass = CONFIG_WIFI_PASSWORD;
 int retry_num = 0;
 
 httpd_handle_t start_webserver(void);
-void stop_webserver(httpd_handle_t server);
+void stop_webserver(httpd_handle_t http_server);
 
+// Embedded files html, css, js und favicon
+extern const uint8_t index_html_start[] asm("_binary_index_html_start");
+extern const uint8_t index_html_end[] asm("_binary_index_html_end");
+extern const uint8_t app_css_start[] asm("_binary_app_css_start");
+extern const uint8_t app_css_end[] asm("_binary_app_css_end");
+extern const uint8_t app_js_start[] asm("_binary_app_js_start");
+extern const uint8_t app_js_end[] asm("_binary_app_js_end");
+extern const uint8_t favicon_ico_start[] asm("_binary_favicon_ico_start");
+extern const uint8_t favicon_ico_end[] asm("_binary_favicon_ico_end");
 
-static void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
-    if (event_id == WIFI_EVENT_STA_START) {
+static void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
+{
+    if (event_id == WIFI_EVENT_STA_START)
+    {
         printf("WIFI CONNECTING....\n");
-    } else if (event_id == WIFI_EVENT_STA_CONNECTED) {
+    }
+    else if (event_id == WIFI_EVENT_STA_CONNECTED)
+    {
         printf("WiFi CONNECTED\n");
-    } else if (event_id == WIFI_EVENT_STA_DISCONNECTED) {
+    }
+    else if (event_id == WIFI_EVENT_STA_DISCONNECTED)
+    {
         printf("WiFi lost connection\n");
-        if (retry_num < 5) {
+        if (retry_num < 5)
+        {
             esp_wifi_connect();
             retry_num++;
             printf("Retrying to Connect...\n");
         }
-        //ChatGPT hat geholfen die IP auszugeben
-    } else if (event_id == IP_EVENT_STA_GOT_IP) {
-        ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
+    }
+    else if (event_id == IP_EVENT_STA_GOT_IP)
+    {
+        ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
         printf("Wifi got IP...\n");
         printf("IP is: " IPSTR "\n", IP2STR(&event->ip_info.ip));
     }
 }
 
-// HTML CODE
-esp_err_t custom_handler(httpd_req_t *req) {
-    const char *html_head = "<html><head><style>"
-                            "body {font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background-color: #2c3e50; color: #ecf0f1;}"
-                            "h1 {color: #3498db;}"
-                            "button {padding: 10px 20px; font-size: 16px; margin: 10px; border: none; border-radius: 5px; cursor: pointer;}"
-                            "button#startButton {background-color: #2ecc71; color: white;}"
-                            "button#stopButton {background-color: #e74c3c; color: white;}"
-                            "#moistureBar {width: 80%; background-color: #34495e; border-radius: 5px; margin: 20px auto;}"
-                            "#moistureProgress {height: 30px; border-radius: 5px; background-color: #2ecc71; text-align: center; line-height: 30px; color: white;}"
-                            "</style></head><body>"
-                            "<h1>Smart Plantation</h1>"
-
-                            "<div id=\"moistureBar\">"
-                            "  <div id=\"moistureProgress\" style=\"width: %d%%;\"></div>"
-                            "</div>";
-
-    const char *html_end = "</body></html>";
-
-    // Dynamische Size
-    size_t content_size = strlen(html_head) + strlen(html_end) + 20;
-    char *content = (char *)malloc(content_size);
-    if (content == NULL) {
-        ESP_LOGE("main", "Failed to allocate memory for HTML content");
-        httpd_resp_send_500(req);
-        return ESP_FAIL;
-    }
-    sprintf(content, html_head, 50);
-    httpd_resp_send(req, content, HTTPD_RESP_USE_STRLEN);
-    free(content);
-
+// HTML handler
+esp_err_t http_handler(httpd_req_t *req)
+{
+    httpd_resp_set_type(req, "text/html");
+    httpd_resp_send(req, (const char *)index_html_start, index_html_end - index_html_start);
     return ESP_OK;
 }
 
-// URI-Definitionen und handler
-httpd_uri_t custom_uri = {
-        .uri = "/",
-        .method = HTTP_GET,
-        .handler = custom_handler,
-        .user_ctx = NULL
-};
+// CSS handler
+esp_err_t css_handler(httpd_req_t *req)
+{
+    httpd_resp_set_type(req, "text/css");
+    httpd_resp_send(req, (const char *)app_css_start, app_css_end - app_css_start);
+    return ESP_OK;
+}
+
+// JavaScript handler
+esp_err_t js_handler(httpd_req_t *req)
+{
+    httpd_resp_set_type(req, "application/javascript");
+    httpd_resp_send(req, (const char *)app_js_start, app_js_end - app_js_start);
+    return ESP_OK;
+}
+
+// Favicon handler
+esp_err_t favicon_handler(httpd_req_t *req)
+{
+    httpd_resp_set_type(req, "image/x-icon");
+    httpd_resp_send(req, (const char *)favicon_ico_start, favicon_ico_end - favicon_ico_start);
+    return ESP_OK;
+}
+
+// URI-Definitionen und Handler für HTML, CSS, JS und Favicon
+httpd_uri_t http_uri = {
+    .uri = "/",
+    .method = HTTP_GET,
+    .handler = http_handler,
+    .user_ctx = NULL};
+
+httpd_uri_t css_uri = {
+    .uri = "/app.css",
+    .method = HTTP_GET,
+    .handler = css_handler,
+    .user_ctx = NULL};
+
+httpd_uri_t js_uri = {
+    .uri = "/app.js", // Hier wird der URI für die JS-Datei definiert
+    .method = HTTP_GET,
+    .handler = js_handler,
+    .user_ctx = NULL};
+
+httpd_uri_t favicon_uri = {
+    .uri = "/favicon.ico",
+    .method = HTTP_GET,
+    .handler = favicon_handler,
+    .user_ctx = NULL};
 
 // Funktion die Verbindung mit dem WIFI herstellt
-void wifi_connection() {
+void wifi_connection()
+{
     esp_netif_init();
     esp_event_loop_create_default();
     esp_netif_create_default_wifi_sta();
@@ -85,11 +118,10 @@ void wifi_connection() {
     esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, wifi_event_handler, NULL);
 
     wifi_config_t wifi_configuration = {
-            .sta = {
-                    .ssid = "FH-Kiel-IoT-NAT",
-                    .password = "!FH-NAT-001!",
-            }
-    };
+        .sta = {
+            .ssid = CONFIG_WIFI_SSID,
+            .password = CONFIG_WIFI_PASSWORD,
+        }};
 
     strcpy((char *)wifi_configuration.sta.ssid, ssid);
     strcpy((char *)wifi_configuration.sta.password, pass);
@@ -100,16 +132,22 @@ void wifi_connection() {
     printf("wifi_init_softap finished. SSID:%s  password:%s", ssid, pass);
 }
 
-// Funktion zum starten des Servers
-httpd_handle_t start_webserver(void) {
-    httpd_handle_t server = NULL;
+// Funktion zum Starten des Servers
+httpd_handle_t start_webserver(void)
+{
+    httpd_handle_t http_server = NULL;
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
 
-    if (httpd_start(&server, &config) == ESP_OK) {
-        httpd_register_uri_handler(server, &custom_uri);
-        return server;
+    if (httpd_start(&http_server, &config) == ESP_OK)
+    {
+        // Registriere die Handler für HTML, CSS, JS und Favicon
+        httpd_register_uri_handler(http_server, &http_uri);
+        httpd_register_uri_handler(http_server, &css_uri);
+        httpd_register_uri_handler(http_server, &js_uri);
+        httpd_register_uri_handler(http_server, &favicon_uri);
+        return http_server;
     }
 
-    ESP_LOGI("WebServer", "Error starting server!");
+    ESP_LOGI("WebServer", "Error starting http_server!");
     return NULL;
 }

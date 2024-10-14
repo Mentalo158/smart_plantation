@@ -1,0 +1,15 @@
+menu "WiFi Configuration"
+
+config WIFI_SSID
+    string "WiFi SSID"
+    default "FH-Kiel-IoT-NAT"
+    help
+        Enter the WiFi SSID that the device should connect to.
+
+config WIFI_PASSWORD
+    string "WiFi Password"
+    default "!FH-NAT-001!"
+    help
+        Enter the WiFi password for the SSID.
+
+endmenu
