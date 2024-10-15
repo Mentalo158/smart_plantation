@@ -29,17 +29,20 @@
         }
 
         #moistureBar {
-            width: 80%;
-            background-color: #34495e;
+            width: 100%;
+            background-color: #e0e0e0;
+            height: 30px;
             border-radius: 5px;
-            margin: 20px auto;
+            overflow: hidden;
+            margin-top: 20px;
         }
 
         #moistureProgress {
-            height: 30px;
-            border-radius: 5px;
-            background-color: #2ecc71;
+            width: 0;
+            background-color: green;
+            height: 100%;
             text-align: center;
-            line-height: 30px;
             color: white;
+            line-height: 30px;
+            transition: width 0.5s ease-in-out;
         }

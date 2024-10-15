@@ -1,0 +1,46 @@
+\doxysection{wifi-\/server.h File Reference}
+\hypertarget{wifi-server_8h}{}\label{wifi-server_8h}\index{wifi-\/server.h@{wifi-\/server.h}}
+{\ttfamily \#include "{}freertos/\+Free\+RTOS.\+h"{}}\newline
+{\ttfamily \#include "{}freertos/task.\+h"{}}\newline
+{\ttfamily \#include "{}freertos/semphr.\+h"{}}\newline
+{\ttfamily \#include "{}freertos/queue.\+h"{}}\newline
+{\ttfamily \#include "{}esp\+\_\+event.\+h"{}}\newline
+{\ttfamily \#include "{}esp\+\_\+http\+\_\+server.\+h"{}}\newline
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{wifi-server_8h_a8cea75dc8a8655486754c310ed7d588e}{wifi\+\_\+connection}} (void)
+\begin{DoxyCompactList}\small\item\em Stellt die Verbindung zum WLAN her. \end{DoxyCompactList}\item 
+httpd\+\_\+handle\+\_\+t \mbox{\hyperlink{wifi-server_8h_aa405dbf500a1f511f559e1e87efff9da}{start\+\_\+webserver}} (void)
+\begin{DoxyCompactList}\small\item\em Prototyp für die Funktion zum Starten des Webservers. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Function Documentation}
+\Hypertarget{wifi-server_8h_aa405dbf500a1f511f559e1e87efff9da}\index{wifi-\/server.h@{wifi-\/server.h}!start\_webserver@{start\_webserver}}
+\index{start\_webserver@{start\_webserver}!wifi-\/server.h@{wifi-\/server.h}}
+\doxysubsubsection{\texorpdfstring{start\_webserver()}{start\_webserver()}}
+{\footnotesize\ttfamily \label{wifi-server_8h_aa405dbf500a1f511f559e1e87efff9da} 
+httpd\+\_\+handle\+\_\+t start\+\_\+webserver (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Prototyp für die Funktion zum Starten des Webservers. 
+
+Startet den Webserver.
+
+Diese Funktion initialisiert und startet den HTTP-\/\+Server und registriert die URI-\/\+Handler für HTML, CSS, JS und Favicon.
+
+\begin{DoxyReturn}{Returns}
+httpd\+\_\+handle\+\_\+t Handle des gestarteten HTTP-\/\+Servers oder NULL bei Fehler. 
+\end{DoxyReturn}
+\Hypertarget{wifi-server_8h_a8cea75dc8a8655486754c310ed7d588e}\index{wifi-\/server.h@{wifi-\/server.h}!wifi\_connection@{wifi\_connection}}
+\index{wifi\_connection@{wifi\_connection}!wifi-\/server.h@{wifi-\/server.h}}
+\doxysubsubsection{\texorpdfstring{wifi\_connection()}{wifi\_connection()}}
+{\footnotesize\ttfamily \label{wifi-server_8h_a8cea75dc8a8655486754c310ed7d588e} 
+void wifi\+\_\+connection (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Stellt die Verbindung zum WLAN her. 
+
+Diese Funktion initialisiert das WLAN, registriert die Ereignis-\/\+Handler und stellt die Verbindung zum definierten WLAN her. 

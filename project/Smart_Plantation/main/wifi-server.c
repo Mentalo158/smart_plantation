@@ -4,23 +4,38 @@
 #include "nvs_flash.h"
 #include "sdkconfig.h"
 
-const char *ssid = CONFIG_WIFI_SSID;
-const char *pass = CONFIG_WIFI_PASSWORD;
-int retry_num = 0;
+// Globale Variablen für WLAN-Konfiguration
+const char *ssid = CONFIG_WIFI_SSID;     ///< SSID des WLANs
+const char *pass = CONFIG_WIFI_PASSWORD; ///< Passwort für das WLAN
+int retry_num = 0;                       ///< Zähler für Wiederholungsversuche bei der WLAN-Verbindung
 
-httpd_handle_t start_webserver(void);
-void stop_webserver(httpd_handle_t http_server);
+httpd_handle_t start_webserver(void);            ///< Prototyp für die Funktion zum Starten des Webservers
+void stop_webserver(httpd_handle_t http_server); ///< Prototyp für die Funktion zum Stoppen des Webservers
 
-// Embedded files html, css, js und favicon
-extern const uint8_t index_html_start[] asm("_binary_index_html_start");
-extern const uint8_t index_html_end[] asm("_binary_index_html_end");
-extern const uint8_t app_css_start[] asm("_binary_app_css_start");
-extern const uint8_t app_css_end[] asm("_binary_app_css_end");
-extern const uint8_t app_js_start[] asm("_binary_app_js_start");
-extern const uint8_t app_js_end[] asm("_binary_app_js_end");
-extern const uint8_t favicon_ico_start[] asm("_binary_favicon_ico_start");
-extern const uint8_t favicon_ico_end[] asm("_binary_favicon_ico_end");
+// Eingebettete Dateien (HTML, CSS, JS, Favicon)
+extern const uint8_t index_html_start[] asm("_binary_index_html_start");   ///< Start der HTML-Datei
+extern const uint8_t index_html_end[] asm("_binary_index_html_end");       ///< Ende der HTML-Datei
+extern const uint8_t app_css_start[] asm("_binary_app_css_start");         ///< Start der CSS-Datei
+extern const uint8_t app_css_end[] asm("_binary_app_css_end");             ///< Ende der CSS-Datei
+extern const uint8_t app_js_start[] asm("_binary_app_js_start");           ///< Start der JS-Datei
+extern const uint8_t app_js_end[] asm("_binary_app_js_end");               ///< Ende der JS-Datei
+extern const uint8_t favicon_ico_start[] asm("_binary_favicon_ico_start"); ///< Start des Favicon
+extern const uint8_t favicon_ico_end[] asm("_binary_favicon_ico_end");     ///< Ende des Favicon
 
+extern QueueHandle_t adcDataQueue; ///< Handle für die ADC-Daten-Queue
+float current_adc_value = 0.0;     ///< Aktueller ADC-Wert
+
+/**
+ * @brief WLAN-Ereignishandler.
+ *
+ * Diese Funktion behandelt verschiedene WLAN-Ereignisse wie
+ * Verbindungsstatus und IP-Adressenvergabe.
+ *
+ * @param event_handler_arg Argument für den Ereignishandler (nicht verwendet).
+ * @param event_base Basis des Ereignisses.
+ * @param event_id ID des Ereignisses.
+ * @param event_data Daten des Ereignisses.
+ */
 static void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
 {
     if (event_id == WIFI_EVENT_STA_START)
@@ -49,7 +64,14 @@ static void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_b
     }
 }
 
-// HTML handler
+/**
+ * @brief Handler für HTML-Anfragen.
+ *
+ * Diese Funktion verarbeitet HTTP-Anfragen für die HTML-Seite.
+ *
+ * @param req Pointer auf die HTTP-Anfrage.
+ * @return ESP_OK bei Erfolg.
+ */
 esp_err_t http_handler(httpd_req_t *req)
 {
     httpd_resp_set_type(req, "text/html");
@@ -57,7 +79,14 @@ esp_err_t http_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
-// CSS handler
+/**
+ * @brief Handler für CSS-Anfragen.
+ *
+ * Diese Funktion verarbeitet HTTP-Anfragen für die CSS-Datei.
+ *
+ * @param req Pointer auf die HTTP-Anfrage.
+ * @return ESP_OK bei Erfolg.
+ */
 esp_err_t css_handler(httpd_req_t *req)
 {
     httpd_resp_set_type(req, "text/css");
@@ -65,7 +94,14 @@ esp_err_t css_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
-// JavaScript handler
+/**
+ * @brief Handler für JavaScript-Anfragen.
+ *
+ * Diese Funktion verarbeitet HTTP-Anfragen für die JavaScript-Datei.
+ *
+ * @param req Pointer auf die HTTP-Anfrage.
+ * @return ESP_OK bei Erfolg.
+ */
 esp_err_t js_handler(httpd_req_t *req)
 {
     httpd_resp_set_type(req, "application/javascript");
@@ -73,11 +109,46 @@ esp_err_t js_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
-// Favicon handler
+/**
+ * @brief Handler für Favicon-Anfragen.
+ *
+ * Diese Funktion verarbeitet HTTP-Anfragen für das Favicon.
+ *
+ * @param req Pointer auf die HTTP-Anfrage.
+ * @return ESP_OK bei Erfolg.
+ */
 esp_err_t favicon_handler(httpd_req_t *req)
 {
     httpd_resp_set_type(req, "image/x-icon");
     httpd_resp_send(req, (const char *)favicon_ico_start, favicon_ico_end - favicon_ico_start);
+    return ESP_OK;
+}
+
+/**
+ * @brief Handler für ADC-Wert-Anfragen.
+ *
+ * Diese Funktion verarbeitet HTTP-Anfragen und gibt den letzten
+ * ADC-Wert als JSON zurück.
+ *
+ * @param req Pointer auf die HTTP-Anfrage.
+ * @return ESP_OK bei Erfolg.
+ */
+esp_err_t adc_value_handler(httpd_req_t *req)
+{
+    float adcValue = 0.0;
+
+    // Hole den letzten ADC-Wert ohne zu blocken
+    if (xQueuePeek(adcDataQueue, &adcValue, 0) == pdTRUE)
+    {
+        char response[64];
+        snprintf(response, sizeof(response), "{\"adc_value\": %.2f}", adcValue);
+        httpd_resp_set_type(req, "application/json");
+        httpd_resp_send(req, response, strlen(response));
+    }
+    else
+    {
+        httpd_resp_send_404(req); // No Content
+    }
     return ESP_OK;
 }
 
@@ -106,38 +177,65 @@ httpd_uri_t favicon_uri = {
     .handler = favicon_handler,
     .user_ctx = NULL};
 
-// Funktion die Verbindung mit dem WIFI herstellt
+httpd_uri_t adc_uri = {
+    .uri = "/adc",
+    .method = HTTP_GET,
+    .handler = adc_value_handler,
+    .user_ctx = NULL};
+
+/**
+ * @brief Stellt die Verbindung zum WLAN her.
+ *
+ * Diese Funktion initialisiert das WLAN, registriert die Ereignis-Handler
+ * und stellt die Verbindung zum definierten WLAN her.
+ */
 void wifi_connection()
 {
-    esp_netif_init();
-    esp_event_loop_create_default();
-    esp_netif_create_default_wifi_sta();
+    esp_netif_init();                    // Initialisiere das Netzwerkinterface
+    esp_event_loop_create_default();     // Erstelle die Standard-Ereignisschleife
+    esp_netif_create_default_wifi_sta(); // Erstelle ein Standard-WLAN-Station-Interface
+
+    // WLAN-Initialisierung
     wifi_init_config_t wifi_initiation = WIFI_INIT_CONFIG_DEFAULT();
     esp_wifi_init(&wifi_initiation);
+
+    // Registriere die Ereignis-Handler
     esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, wifi_event_handler, NULL);
     esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, wifi_event_handler, NULL);
 
+    // WLAN-Konfiguration
     wifi_config_t wifi_configuration = {
         .sta = {
             .ssid = CONFIG_WIFI_SSID,
             .password = CONFIG_WIFI_PASSWORD,
         }};
 
+    // SSID und Passwort setzen
     strcpy((char *)wifi_configuration.sta.ssid, ssid);
     strcpy((char *)wifi_configuration.sta.password, pass);
+
+    // Konfiguration anwenden
     esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_configuration);
-    esp_wifi_start();
-    esp_wifi_set_mode(WIFI_MODE_STA);
-    esp_wifi_connect();
+    esp_wifi_start();                 // WLAN starten
+    esp_wifi_set_mode(WIFI_MODE_STA); // Setze den WLAN-Modus auf Station
+    esp_wifi_connect();               // Verbinde mit dem WLAN
     printf("wifi_init_softap finished. SSID:%s  password:%s", ssid, pass);
 }
 
-// Funktion zum Starten des Servers
+/**
+ * @brief Startet den Webserver.
+ *
+ * Diese Funktion initialisiert und startet den HTTP-Server
+ * und registriert die URI-Handler für HTML, CSS, JS und Favicon.
+ *
+ * @return httpd_handle_t Handle des gestarteten HTTP-Servers oder NULL bei Fehler.
+ */
 httpd_handle_t start_webserver(void)
 {
-    httpd_handle_t http_server = NULL;
-    httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+    httpd_handle_t http_server = NULL;              // Handle für den HTTP-Server
+    httpd_config_t config = HTTPD_DEFAULT_CONFIG(); // Standardkonfiguration für den HTTP-Server
 
+    // Startet den HTTP-Server
     if (httpd_start(&http_server, &config) == ESP_OK)
     {
         // Registriere die Handler für HTML, CSS, JS und Favicon
@@ -145,9 +243,10 @@ httpd_handle_t start_webserver(void)
         httpd_register_uri_handler(http_server, &css_uri);
         httpd_register_uri_handler(http_server, &js_uri);
         httpd_register_uri_handler(http_server, &favicon_uri);
-        return http_server;
+        httpd_register_uri_handler(http_server, &adc_uri);
+        return http_server; // Gibt das Handle des gestarteten HTTP-Servers zurück
     }
 
-    ESP_LOGI("WebServer", "Error starting http_server!");
-    return NULL;
+    ESP_LOGI("WebServer", "Error starting http_server!"); // Fehler beim Starten des Servers
+    return NULL;                                          // Gibt NULL zurück, wenn der Server nicht gestartet werden konnte
 }

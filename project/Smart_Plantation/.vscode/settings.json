@@ -4,8 +4,11 @@
     "*.embeddedhtml": "html",
     "*.ejs": "html",
     "sdkconfig.h": "c",
-    "mdns.h": "c"
+    "mdns.h": "c",
+    "cstdlib": "c",
+    "stdlib.h": "c"
   },
   "idf.flashType": "UART",
-  "idf.portWin": "COM3"
+  "idf.portWin": "COM3",
+  "idf.adapterTargetName": "esp32"
 }

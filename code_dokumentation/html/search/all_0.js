@@ -1,0 +1,18 @@
+var searchData=
+[
+  ['adc1_5fcali_5fhandle_0',['adc1_cali_handle',['../adc__sensor_8c.html#a49ce44847deee2ea73bb6920a9e82a7c',1,'adc_sensor.c']]],
+  ['adc1_5fhandle_1',['adc1_handle',['../adc__sensor_8c.html#a0b95b5937de8bdf11f73c2636d897c49',1,'adc_sensor.c']]],
+  ['adc_5fch_5f4_2',['ADC_CH_4',['../adc__sensor_8h.html#a193789bbb032f62143157502dfaefbed',1,'adc_sensor.h']]],
+  ['adc_5fcleanup_3',['adc_cleanup',['../adc__sensor_8c.html#a62f6b705ea4d8431dbbb921fe93f6ec4',1,'adc_cleanup():&#160;adc_sensor.c'],['../adc__sensor_8h.html#a62f6b705ea4d8431dbbb921fe93f6ec4',1,'adc_cleanup():&#160;adc_sensor.c']]],
+  ['adc_5finit_4',['adc_init',['../adc__sensor_8c.html#a128ccc8f0fc210a53339a22fc5aa8d86',1,'adc_init(adc_channel_t channel, adc_bits_width_t bitwidth):&#160;adc_sensor.c'],['../adc__sensor_8h.html#ac07137b5501373aeb6554b57e27e08f9',1,'adc_init(adc_channel_t channel, adc_bits_width_t bit_width):&#160;adc_sensor.c']]],
+  ['adc_5fread_5fsensor_5',['adc_read_sensor',['../adc__sensor_8c.html#acbb65396d151bc12f1b006bfc7c65b2e',1,'adc_read_sensor(adc_channel_t channel):&#160;adc_sensor.c'],['../adc__sensor_8h.html#acbb65396d151bc12f1b006bfc7c65b2e',1,'adc_read_sensor(adc_channel_t channel):&#160;adc_sensor.c']]],
+  ['adc_5fsensor_2ec_6',['adc_sensor.c',['../adc__sensor_8c.html',1,'']]],
+  ['adc_5fsensor_2eh_7',['adc_sensor.h',['../adc__sensor_8h.html',1,'']]],
+  ['adc_5furi_8',['adc_uri',['../wifi-server_8c.html#ae93abf343f8b4d10394b5e0957807fd0',1,'wifi-server.c']]],
+  ['adc_5fvalue_5fhandler_9',['adc_value_handler',['../wifi-server_8c.html#ac46957b09dc99b8a4acbcb8a0218b315',1,'wifi-server.c']]],
+  ['adcdataqueue_10',['adcDataQueue',['../task__common_8c.html#ae6eb9a39bb5c0b52d68cfe5a02ae1bd3',1,'adcDataQueue:&#160;task_common.c'],['../task__common_8h.html#ae6eb9a39bb5c0b52d68cfe5a02ae1bd3',1,'adcDataQueue:&#160;task_common.c'],['../wifi-server_8c.html#ae6eb9a39bb5c0b52d68cfe5a02ae1bd3',1,'adcDataQueue:&#160;task_common.c']]],
+  ['adcsensortask_11',['adcSensorTask',['../task__common_8c.html#a75fa0f87c55e7e108d85a843cffcbeb3',1,'adcSensorTask(void *pvParameters):&#160;task_common.c'],['../task__common_8h.html#a75fa0f87c55e7e108d85a843cffcbeb3',1,'adcSensorTask(void *pvParameters):&#160;task_common.c']]],
+  ['adctopercentage_12',['adcToPercentage',['../adc__sensor_8c.html#a71470343d584d2bcd7b4084c00bedb50',1,'adcToPercentage(uint32_t adcValue):&#160;adc_sensor.c'],['../adc__sensor_8h.html#a71470343d584d2bcd7b4084c00bedb50',1,'adcToPercentage(uint32_t adcValue):&#160;adc_sensor.c']]],
+  ['app_5fmain_13',['app_main',['../main_8c.html#abce06be17fc37d675118a678a8100a36',1,'main.c']]],
+  ['asm_14',['asm',['../wifi-server_8c.html#aede8f0bb2c45776a5718d8e7b8acbb6a',1,'asm(&quot;_binary_index_html_start&quot;):&#160;wifi-server.c'],['../wifi-server_8c.html#a7b39f1fcc418da402de3d6966546ef7d',1,'asm(&quot;_binary_index_html_end&quot;):&#160;wifi-server.c'],['../wifi-server_8c.html#a9244ba5260d10d4123426c271185e1be',1,'asm(&quot;_binary_app_css_start&quot;):&#160;wifi-server.c'],['../wifi-server_8c.html#aa24663d0779ecc33c5ad8e23fc43eb38',1,'asm(&quot;_binary_app_css_end&quot;):&#160;wifi-server.c'],['../wifi-server_8c.html#ac26de1a80dac4a73d1b67c5008afc2e8',1,'asm(&quot;_binary_app_js_start&quot;):&#160;wifi-server.c'],['../wifi-server_8c.html#afb40daa6bc7c43c57851110ab190fc4b',1,'asm(&quot;_binary_app_js_end&quot;):&#160;wifi-server.c'],['../wifi-server_8c.html#a6b0380c4515b49f9f71d01a188fda1c4',1,'asm(&quot;_binary_favicon_ico_start&quot;):&#160;wifi-server.c'],['../wifi-server_8c.html#ad4e8db8ceb133b2f52a893c00c559b5e',1,'asm(&quot;_binary_favicon_ico_end&quot;):&#160;wifi-server.c']]]
+];

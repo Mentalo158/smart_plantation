@@ -1,0 +1,30 @@
+\doxysection{adc\+\_\+sensor.\+h}
+\hypertarget{adc__sensor_8h_source}{}\label{adc__sensor_8h_source}\index{adc\_sensor.h@{adc\_sensor.h}}
+\mbox{\hyperlink{adc__sensor_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ ADC\_SENSOR\_H}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ ADC\_SENSOR\_H}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ <stdio.h>}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ "{}esp\_err.h"{}}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ "{}driver/adc.h"{}}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ "{}esp\_adc/adc\_oneshot.h"{}}}
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{comment}{//\ ADC-\/Kanal-\/Definition}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#define\ ADC\_CH\_4\ ADC1\_CHANNEL\_4\ }\textcolor{comment}{//\ GPIO\ 32\ auf\ dem\ ESP}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{comment}{//\ Funktion\ zur\ Kalibrierung\ und\ Initialisierung\ des\ ADC}}
+\DoxyCodeLine{00013\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{adc__sensor_8h_ac07137b5501373aeb6554b57e27e08f9}{adc\_init}}(adc\_channel\_t\ channel,\ adc\_bits\_width\_t\ bit\_width);}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{comment}{//\ Funktion\ zum\ Lesen\ des\ ADC-\/Werts\ und\ Umwandlung\ in\ Prozent}}
+\DoxyCodeLine{00016\ \textcolor{keywordtype}{float}\ \mbox{\hyperlink{adc__sensor_8h_acbb65396d151bc12f1b006bfc7c65b2e}{adc\_read\_sensor}}(adc\_channel\_t\ channel);}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ \textcolor{comment}{//\ Funktion\ zur\ Umrechnung\ des\ ADC-\/Werts\ in\ Prozent}}
+\DoxyCodeLine{00019\ \textcolor{keywordtype}{float}\ \mbox{\hyperlink{adc__sensor_8h_a71470343d584d2bcd7b4084c00bedb50}{adcToPercentage}}(uint32\_t\ adcValue);}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{comment}{//\ Funktion\ zur\ Bereinigung\ des\ ADC\ (optional)}}
+\DoxyCodeLine{00022\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{adc__sensor_8h_a62f6b705ea4d8431dbbb921fe93f6ec4}{adc\_cleanup}}();}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ ADC\_SENSOR\_H}}
+
+\end{DoxyCode}
