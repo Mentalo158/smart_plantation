@@ -1,26 +1,24 @@
 #ifndef TEMPERATURE_SENSOR_H
 #define TEMPERATURE_SENSOR_H
 
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
+#include <stdint.h>
 #include "esp_log.h"
-#include <dht.h>
 
-// Tag für das Logging
-static const char *TAG = "DHT_READER";
+// DHT-Sensor Typen
+#define DHT_TYPE_DHT11_SENSOR 11
+#define DHT_TYPE_DHT22_SENSOR 22
 
-// Definiere den DHT-Sensortyp und den GPIO-Pin
-#define DHT_SENSOR_TYPE DHT_TYPE_DHT11 // Sensor Typ: DHT11 oder DHT22
-#define DHT_GPIO_PIN GPIO_NUM_4        // GPIO-Pin für den DHT-Sensor
+// Beispiel GPIO-Pin für den DHT-Sensor
+#define DHT_GPIO_PIN 4
 
-/**
- * @brief Liest die Temperatur und Feuchtigkeit vom DHT-Sensor und gibt die Werte aus.
- *
- * Diese Funktion wird als Task verwendet, um kontinuierlich Daten vom DHT-Sensor zu lesen
- * und auf der Konsole anzuzeigen. Die Task wiederholt den Vorgang in regelmäßigen Abständen.
- *
- * @param pvParameter Ein optionaler Parameter für die FreeRTOS-Task-Funktion (nicht verwendet).
- */
-void temperature_sensor(void *pvParameter);
+// Struktur zur Speicherung der DHT-Daten
+typedef struct
+{
+    float humidity;    // Luftfeuchtigkeit
+    float temperature; // Temperatur
+} dht_data_t;
+
+// Funktion zur Messung von Temperatur und Feuchtigkeit
+dht_data_t temperature_sensor(void);
 
 #endif // TEMPERATURE_SENSOR_H

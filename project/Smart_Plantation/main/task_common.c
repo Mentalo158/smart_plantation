@@ -3,12 +3,14 @@
 #include "wifi-server.h"
 #include "mdns_server.h"
 #include "esp_log.h"
+#include "temperature_sensor.h" // Header für den DHT-Sensor Task
 
 #define QUEUE_LENGTH 1          // Größe 1 für immer den neuesten Wert
 #define ITEM_SIZE sizeof(float) // Größe eines einzelnen Queue-Elements
 
-// Globales Handle für die ADC-Daten-Queue
+// Globales Handle für die ADC-Daten-Queue und DHT-Daten-Queue
 QueueHandle_t adcDataQueue;
+QueueHandle_t dhtDataQueue; // Neue Queue für DHT-Daten
 
 /**
  * @brief ADC Sensor Task.
@@ -19,7 +21,7 @@ QueueHandle_t adcDataQueue;
  *
  * @param pvParameters Pointer zu den übergebenen Parametern (nicht verwendet).
  */
-void sensorTask(void *pvParameters)
+void adcTask(void *pvParameters)
 {
     adc_init(ADC_CH_4, ADC_WIDTH_BIT_12, MOISTURE_ATTEN); // ADC initialisieren, ADC_CH_4 ist ADC1_CHANNEL_4 (GPIO32)
 
@@ -38,6 +40,37 @@ void sensorTask(void *pvParameters)
         }
 
         vTaskDelay(pdMS_TO_TICKS(1000)); // 1 Sekunde warten
+    }
+}
+
+/**
+ * @brief DHT Sensor Task.
+ *
+ * Diese Funktion liest kontinuierlich Temperatur- und Feuchtigkeitswerte
+ * von einem DHT-Sensor und schreibt diese Werte in eine Queue.
+ *
+ * @param pvParameters Pointer zu den übergebenen Parametern (nicht verwendet).
+ */
+void dhtTask(void *pvParameters)
+{
+    ESP_LOGI("DHT_Sensor", "DHT Sensor Task gestartet...");
+
+    // Wartezeit vor dem Start (2 Sekunden)
+    vTaskDelay(pdMS_TO_TICKS(2000));
+
+    while (1)
+    {
+        // Lese die Daten vom DHT-Sensor
+        dht_data_t dhtData = temperature_sensor(); // Ruft die Funktion zum Lesen der Sensorwerte auf
+
+        // Schreibe die Temperatur und Feuchtigkeit in die Queue
+        if (xQueueOverwrite(dhtDataQueue, &dhtData) != pdPASS)
+        {
+            ESP_LOGE("DHT_Sensor", "Failed to overwrite DHT data in queue");
+        }
+
+        // Alle 2 Sekunden erneut lesen
+        vTaskDelay(pdMS_TO_TICKS(2000));
     }
 }
 
@@ -71,17 +104,25 @@ void webServerTask(void *pvParameters)
 }
 
 /**
- * @brief Initialisiert die ADC-Daten-Queue.
+ * @brief Initialisiert die Queues.
  *
- * Diese Funktion erstellt eine Queue zur Kommunikation
- * zwischen den Tasks. Die Queue hat eine definierte Länge
- * und Größe für die darin enthaltenen Elemente.
+ * Diese Funktion erstellt die Queues zur Kommunikation
+ * zwischen den Tasks. Es gibt eine Queue für die ADC-Daten
+ * und eine separate für die DHT-Daten.
  */
 void init_queue()
 {
-    adcDataQueue = xQueueCreate(QUEUE_LENGTH, ITEM_SIZE); // Erstelle die Queue
+    // ADC Queue initialisieren
+    adcDataQueue = xQueueCreate(QUEUE_LENGTH, ITEM_SIZE);
     if (adcDataQueue == NULL)
     {
-        ESP_LOGE("Task_Common", "Queue creation failed!"); // Fehler beim Erstellen der Queue
+        ESP_LOGE("Task_Common", "ADC Queue creation failed!"); // Fehler beim Erstellen der ADC Queue
+    }
+
+    // DHT Queue initialisieren
+    dhtDataQueue = xQueueCreate(QUEUE_LENGTH, sizeof(dht_data_t)); // Queue für die Struktur dht_data_t
+    if (dhtDataQueue == NULL)
+    {
+        ESP_LOGE("Task_Common", "DHT Queue creation failed!"); // Fehler beim Erstellen der DHT Queue
     }
 }

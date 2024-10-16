@@ -1,33 +1,24 @@
 #include "temperature_sensor.h"
+#include "dht.h" // Stelle sicher, dass dieser Header für die DHT-Bibliothek vorhanden ist
 
 /**
- * @brief Liest die Temperatur und Feuchtigkeit vom DHT-Sensor und gibt die Werte aus.
+ * @brief Liest die Temperatur und Feuchtigkeit vom DHT-Sensor.
+ *
+ * @return dht_data_t Struktur mit den gelesenen Werten.
  */
-void temperature_sensor(void *pvParameter)
+dht_data_t temperature_sensor(void)
 {
-    ESP_LOGI(TAG, "DHT Sensor Lesevorgang startet...");
+    dht_data_t dhtData;
 
-    // Wartezeit vor dem Start (2 Sekunden)
-    vTaskDelay(2000 / portTICK_PERIOD_MS);
-
-    // Endlosschleife zum kontinuierlichen Lesen der Daten
-    while (1)
+    // Lese die Daten vom DHT-Sensor
+    if (dht_read_float_data(DHT_TYPE_DHT11, DHT_GPIO_PIN, &dhtData.humidity, &dhtData.temperature) == ESP_OK)
     {
-        float humidity = 0;
-        float temperature = 0;
-
-        // Lese die Daten vom DHT-Sensor
-        if (dht_read_float_data(DHT_SENSOR_TYPE, DHT_GPIO_PIN, &humidity, &temperature) == ESP_OK)
-        {
-            ESP_LOGI(TAG, "Humidity: %.1f%%", humidity);
-            ESP_LOGI(TAG, "Temperature: %.1f°C", temperature);
-        }
-        else
-        {
-            ESP_LOGE(TAG, "Fehler beim Lesen der Daten vom DHT-Sensor!");
-        }
-
-        // Alle 2 Sekunden erneut lesen
-        vTaskDelay(2000 / portTICK_PERIOD_MS);
+        ESP_LOGI("DHT Sensor", "Humidity: %.1f%%, Temperature: %.1f°C", dhtData.humidity, dhtData.temperature);
     }
+    else
+    {
+        ESP_LOGE("DHT Sensor", "Fehler beim Lesen der Daten vom DHT-Sensor!");
+    }
+
+    return dhtData;
 }

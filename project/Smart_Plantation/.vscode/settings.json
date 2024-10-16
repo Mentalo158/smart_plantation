@@ -3,14 +3,6 @@
   "files.associations": {
     "*.embeddedhtml": "html",
     "*.ejs": "html",
-    "sdkconfig.h": "c",
-    "mdns.h": "c",
-    "cstdlib": "c",
-    "stdlib.h": "c",
-    "bit": "cpp",
-    "temperature_sensor.h": "c"
-  },
-  "idf.flashType": "UART",
-  "idf.portWin": "COM9",
-  "idf.adapterTargetName": "esp32"
+    "task_common.h": "c"
+  }
 }
