@@ -7,6 +7,7 @@
 #include "mdns_server.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
+#include "temperature_sensor.h"
 
 /**
  * @brief Hauptanwendung.
@@ -30,6 +31,9 @@ void app_main()
     }
     ESP_ERROR_CHECK(ret); // Überprüfe auf weitere Fehler
 
+    // Erstelle die Task für den Temperatursensor
+    xTaskCreate(&temperature_sensor, "Temperature Sensor Task", 2048, NULL, 5, NULL);
+
     // Queue initialisieren
     init_queue(); // Initialisiert die Queue für die Kommunikation zwischen Tasks
 
@@ -37,6 +41,6 @@ void app_main()
     wifi_connection(); // Stellt eine Verbindung zum WLAN her
 
     // Tasks erstellen
-    xTaskCreatePinnedToCore(adcSensorTask, "ADC Sensor Task", 2048, NULL, 1, NULL, 1); // ADC auf Core 1
+    xTaskCreatePinnedToCore(sensorTask, "ADC Sensor Task", 2048, NULL, 1, NULL, 1);    // ADC auf Core 1
     xTaskCreatePinnedToCore(webServerTask, "Web Server Task", 8192, NULL, 1, NULL, 0); // Webserver und mDNS auf Core 0
 }

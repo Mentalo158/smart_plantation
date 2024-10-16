@@ -10,7 +10,7 @@
 #define ADC_CH_4 ADC1_CHANNEL_4 // GPIO 32 auf dem ESP
 
 // Funktion zur Kalibrierung und Initialisierung des ADC
-void adc_init(adc_channel_t channel, adc_bits_width_t bit_width);
+void adc_init(adc_channel_t channel, adc_bits_width_t bit_width, adc_atten_t atten);
 
 // Funktion zum Lesen des ADC-Werts und Umwandlung in Prozent
 float adc_read_sensor(adc_channel_t channel);

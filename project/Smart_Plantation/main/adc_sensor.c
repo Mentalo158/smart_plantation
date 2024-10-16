@@ -35,11 +35,11 @@ float adcToPercentage(uint32_t adcValue)
  * @param channel Der ADC-Kanal, der initialisiert werden soll.
  * @param bitwidth Die Bitbreite für den ADC (z. B. ADC_WIDTH_BIT_12).
  */
-void adc_init(adc_channel_t channel, adc_bits_width_t bitwidth)
+void adc_init(adc_channel_t channel, adc_bits_width_t bitwidth, adc_atten_t atten)
 {
     // Kalibrierung konfigurieren
     adc_cali_line_fitting_config_t cali_config = {
-        .atten = ADC_ATTEN_DB_11, // Dämpfung einstellen
+        .atten = atten, // Dämpfung einstellen
         .bitwidth = bitwidth,     // Bitbreite wird als Parameter übergeben
     };
 
@@ -51,7 +51,7 @@ void adc_init(adc_channel_t channel, adc_bits_width_t bitwidth)
     adc_oneshot_new_unit(&init_config, &adc1_handle);
 
     // Konfiguration für den übergebenen ADC-Kanal
-    adc_oneshot_chan_cfg_t channel_config = {.atten = ADC_ATTEN_DB_11};
+    adc_oneshot_chan_cfg_t channel_config = {.atten = atten};
     adc_oneshot_config_channel(adc1_handle, channel, &channel_config);
 }
 

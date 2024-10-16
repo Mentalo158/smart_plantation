@@ -19,9 +19,9 @@ QueueHandle_t adcDataQueue;
  *
  * @param pvParameters Pointer zu den übergebenen Parametern (nicht verwendet).
  */
-void adcSensorTask(void *pvParameters)
+void sensorTask(void *pvParameters)
 {
-    adc_init(ADC_CH_4, ADC_WIDTH_BIT_12); // ADC initialisieren, ADC_CH_4 ist ADC1_CHANNEL_4 (GPIO32)
+    adc_init(ADC_CH_4, ADC_WIDTH_BIT_12, MOISTURE_ATTEN); // ADC initialisieren, ADC_CH_4 ist ADC1_CHANNEL_4 (GPIO32)
 
     while (1)
     {
