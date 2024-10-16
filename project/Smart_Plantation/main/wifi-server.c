@@ -22,6 +22,8 @@ extern const uint8_t app_js_start[] asm("_binary_app_js_start");           ///< 
 extern const uint8_t app_js_end[] asm("_binary_app_js_end");               ///< Ende der JS-Datei
 extern const uint8_t favicon_ico_start[] asm("_binary_favicon_ico_start"); ///< Start des Favicon
 extern const uint8_t favicon_ico_end[] asm("_binary_favicon_ico_end");     ///< Ende des Favicon
+extern const uint8_t htmx_js_start[] asm("_binary_htmx_min_js_start");     ///< Start der HTMX JS-Datei
+extern const uint8_t htmx_js_end[] asm("_binary_htmx_min_js_end");         ///< Ende der HTMX JS-Datei
 
 extern QueueHandle_t adcDataQueue;
 extern QueueHandle_t dhtDataQueue;
@@ -125,6 +127,14 @@ esp_err_t favicon_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
+// Handler für HTMX-Bibliothek
+esp_err_t htmx_handler(httpd_req_t *req)
+{
+    httpd_resp_set_type(req, "application/javascript");
+    httpd_resp_send(req, (const char *)htmx_js_start, htmx_js_end - htmx_js_start);
+    return ESP_OK;
+}
+
 /**
  * @brief Handler für ADC-Wert-Anfragen.
  *
@@ -138,17 +148,18 @@ esp_err_t moisture_value_handler(httpd_req_t *req)
 {
     float adcValue = 0.0;
 
-    // Hole den letzten ADC-Wert ohne zu blocken
     if (xQueuePeek(adcDataQueue, &adcValue, 0) == pdTRUE)
     {
-        char response[64];
-        snprintf(response, sizeof(response), "{\"adc_value\": %.2f}", adcValue);
-        httpd_resp_set_type(req, "application/json");
+        char response[128];
+        snprintf(response, sizeof(response),
+                 "<div id=\"moistureProgress\" style=\"width: %.2f%%;\">Moisture Level: %.2f%%</div>",
+                 adcValue, adcValue);
+        httpd_resp_set_type(req, "text/html");
         httpd_resp_send(req, response, strlen(response));
     }
     else
     {
-        httpd_resp_send_404(req); // No Content
+        httpd_resp_send_404(req); // Keine Daten vorhanden
     }
     return ESP_OK;
 }
@@ -164,23 +175,22 @@ esp_err_t moisture_value_handler(httpd_req_t *req)
  */
 esp_err_t temperature_value_handler(httpd_req_t *req)
 {
-    dht_data_t dhtData; // Struktur zum Speichern der Sensorwerte
+    dht_data_t dhtData;
 
-    // Hole die DHT-Daten aus der Queue ohne zu blocken
     if (xQueuePeek(dhtDataQueue, &dhtData, 0) == pdTRUE)
     {
-        char response[128];
-        snprintf(response, sizeof(response), "{\"temperature\": %.2f, \"humidity\": %.2f}",
+        char response[256];
+        snprintf(response, sizeof(response),
+                 "<div id=\"temperatureDisplay\">Temperatur: %.2f °C</div>"
+                 "<div id=\"humidityDisplay\">Luftfeuchtigkeit: %.2f %%</div>",
                  dhtData.temperature, dhtData.humidity);
-        httpd_resp_set_type(req, "application/json");
+        httpd_resp_set_type(req, "text/html");
         httpd_resp_send(req, response, strlen(response));
     }
     else
     {
-        // Wenn die Queue leer ist, sende einen 404-Fehler
-        httpd_resp_send_404(req); // No Content
+        httpd_resp_send_404(req); // Keine Daten vorhanden
     }
-
     return ESP_OK;
 }
 
@@ -207,6 +217,13 @@ httpd_uri_t favicon_uri = {
     .uri = "/favicon.ico",
     .method = HTTP_GET,
     .handler = favicon_handler,
+    .user_ctx = NULL};
+
+// URI-Definition für HTMX JS-Datei
+httpd_uri_t htmx_uri = {
+    .uri = "/htmx.min.js",
+    .method = HTTP_GET,
+    .handler = htmx_handler,
     .user_ctx = NULL};
 
 httpd_uri_t adc_uri = {

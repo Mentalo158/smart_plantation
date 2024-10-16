@@ -4,21 +4,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/app.css">
+    <link rel="stylesheet" href="app.css">
+    <script src="https://unpkg.com/htmx.org@1.9.2"></script>
+    <script src="app.js" defer></script>
     <title>Smart Plantation</title>
 </head>
 
 <body>
-    <h1>Smart Plantation</h1>
-
-    <div id="moistureBar">
-        <div id="moistureProgress" style="width: 0%;"></div>
+    <div class="logo-container">
+        <img src="Logo.png" alt="Logo" style="max-width: 100%; height: auto; margin-bottom: 20px;">
     </div>
 
-    <div id="temperatureDisplay">Temperatur: - °C</div>
-    <div id="humidityDisplay">Luftfeuchtigkeit: - %</div>
+    <hr class="divider">
 
-    <script src="/app.js"></script>
+    <div class="container">
+        <div class="sensor-container">
+            <div class="moisture-text" id="moistureText" hx-get="/adc" hx-trigger="load, every 1s" hx-swap="innerHTML">
+                Moisture Level: -
+            </div>
+            <div id="moistureBar">
+                <div id="moistureProgress" style="width: 0%;"></div>
+            </div>
+            <div id="temperatureDisplay" hx-get="/temperature" hx-trigger="load, every 1s" hx-swap="innerHTML">
+                Temperatur: -
+            </div>
+            <div id="humidityDisplay" hx-get="/temperature" hx-trigger="load, every 1s" hx-swap="innerHTML">
+                Luftfeuchtigkeit: -
+            </div>
+        </div>
+
+        <div class="data-container empty-data">
+            <!-- Hier können später weitere Daten angezeigt werden -->
+            Daten werden hier angezeigt demnächst...
+        </div>
+    </div>
+
+
 </body>
 
 </html>
