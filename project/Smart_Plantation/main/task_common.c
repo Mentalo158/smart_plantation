@@ -10,7 +10,7 @@
 
 // Globales Handle für die ADC-Daten-Queue und DHT-Daten-Queue
 QueueHandle_t adcDataQueue;
-QueueHandle_t dhtDataQueue; // Neue Queue für DHT-Daten
+QueueHandle_t dhtDataQueue; 
 
 /**
  * @brief ADC Sensor Task.
@@ -69,8 +69,7 @@ void dhtTask(void *pvParameters)
             ESP_LOGE("DHT_Sensor", "Failed to overwrite DHT data in queue");
         }
 
-        // Alle 2 Sekunden erneut lesen
-        vTaskDelay(pdMS_TO_TICKS(2000));
+        vTaskDelay(pdMS_TO_TICKS(5000));
     }
 }
 

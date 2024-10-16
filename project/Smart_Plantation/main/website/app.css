@@ -1,48 +1,37 @@
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            text-align: center;
-            background-color: #2c3e50;
-            color: #ecf0f1;
-        }
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-align: center;
+    background-color: #2c3e50;
+    color: #ecf0f1;
+}
 
-        h1 {
-            color: #3498db;
-        }
+h1 {
+    color: #3498db;
+}
 
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            margin: 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
+#temperatureDisplay,
+#humidityDisplay {
+    font-size: 18px;
+    margin-top: 10px;
+    color: #ecf0f1;
+    /* Beispiel für eine Textfarbe */
+}
 
-        button#startButton {
-            background-color: #2ecc71;
-            color: white;
-        }
+#moistureBar {
+    width: 100%;
+    background-color: #e0e0e0;
+    height: 30px;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-top: 20px;
+}
 
-        button#stopButton {
-            background-color: #e74c3c;
-            color: white;
-        }
-
-        #moistureBar {
-            width: 100%;
-            background-color: #e0e0e0;
-            height: 30px;
-            border-radius: 5px;
-            overflow: hidden;
-            margin-top: 20px;
-        }
-
-        #moistureProgress {
-            width: 0;
-            background-color: green;
-            height: 100%;
-            text-align: center;
-            color: white;
-            line-height: 30px;
-            transition: width 0.5s ease-in-out;
-        }
+#moistureProgress {
+    width: 0;
+    background-color: green;
+    height: 100%;
+    text-align: center;
+    color: white;
+    line-height: 30px;
+    transition: width 0.5s ease-in-out;
+}

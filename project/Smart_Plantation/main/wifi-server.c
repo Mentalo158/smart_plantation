@@ -3,6 +3,7 @@
 #include "esp_wifi.h"
 #include "nvs_flash.h"
 #include "sdkconfig.h"
+#include "temperature_sensor.h"
 
 // Globale Variablen für WLAN-Konfiguration
 const char *ssid = CONFIG_WIFI_SSID;     ///< SSID des WLANs
@@ -22,8 +23,8 @@ extern const uint8_t app_js_end[] asm("_binary_app_js_end");               ///< 
 extern const uint8_t favicon_ico_start[] asm("_binary_favicon_ico_start"); ///< Start des Favicon
 extern const uint8_t favicon_ico_end[] asm("_binary_favicon_ico_end");     ///< Ende des Favicon
 
-extern QueueHandle_t adcDataQueue; ///< Handle für die ADC-Daten-Queue
-float current_adc_value = 0.0;     ///< Aktueller ADC-Wert
+extern QueueHandle_t adcDataQueue;
+extern QueueHandle_t dhtDataQueue;
 
 /**
  * @brief WLAN-Ereignishandler.
@@ -133,7 +134,7 @@ esp_err_t favicon_handler(httpd_req_t *req)
  * @param req Pointer auf die HTTP-Anfrage.
  * @return ESP_OK bei Erfolg.
  */
-esp_err_t adc_value_handler(httpd_req_t *req)
+esp_err_t moisture_value_handler(httpd_req_t *req)
 {
     float adcValue = 0.0;
 
@@ -149,6 +150,37 @@ esp_err_t adc_value_handler(httpd_req_t *req)
     {
         httpd_resp_send_404(req); // No Content
     }
+    return ESP_OK;
+}
+
+/**
+ * @brief Handler für Temperatur- und Feuchtigkeitsanfragen.
+ *
+ * Diese Funktion verarbeitet HTTP-Anfragen und gibt die Temperatur
+ * und Feuchtigkeit als JSON zurück.
+ *
+ * @param req Pointer auf die HTTP-Anfrage.
+ * @return ESP_OK bei Erfolg.
+ */
+esp_err_t temperature_value_handler(httpd_req_t *req)
+{
+    dht_data_t dhtData; // Struktur zum Speichern der Sensorwerte
+
+    // Hole die DHT-Daten aus der Queue ohne zu blocken
+    if (xQueuePeek(dhtDataQueue, &dhtData, 0) == pdTRUE)
+    {
+        char response[128];
+        snprintf(response, sizeof(response), "{\"temperature\": %.2f, \"humidity\": %.2f}",
+                 dhtData.temperature, dhtData.humidity);
+        httpd_resp_set_type(req, "application/json");
+        httpd_resp_send(req, response, strlen(response));
+    }
+    else
+    {
+        // Wenn die Queue leer ist, sende einen 404-Fehler
+        httpd_resp_send_404(req); // No Content
+    }
+
     return ESP_OK;
 }
 
@@ -180,7 +212,14 @@ httpd_uri_t favicon_uri = {
 httpd_uri_t adc_uri = {
     .uri = "/adc",
     .method = HTTP_GET,
-    .handler = adc_value_handler,
+    .handler = moisture_value_handler,
+    .user_ctx = NULL};
+
+// URI-Definition für Temperatur- und Feuchtigkeitsanfragen
+httpd_uri_t temperature_uri = {
+    .uri = "/temperature",
+    .method = HTTP_GET,
+    .handler = temperature_value_handler,
     .user_ctx = NULL};
 
 /**
@@ -244,6 +283,7 @@ httpd_handle_t start_webserver(void)
         httpd_register_uri_handler(http_server, &js_uri);
         httpd_register_uri_handler(http_server, &favicon_uri);
         httpd_register_uri_handler(http_server, &adc_uri);
+        httpd_register_uri_handler(http_server, &temperature_uri);
         return http_server; // Gibt das Handle des gestarteten HTTP-Servers zurück
     }
 
