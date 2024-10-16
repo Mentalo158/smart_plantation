@@ -61,7 +61,7 @@ void dhtTask(void *pvParameters)
     while (1)
     {
         // Lese die Daten vom DHT-Sensor
-        dht_data_t dhtData = temperature_sensor(); // Ruft die Funktion zum Lesen der Sensorwerte auf
+        dht_data_t dhtData = read_temperature_sensor(); // Ruft die Funktion zum Lesen der Sensorwerte auf
 
         // Schreibe die Temperatur und Feuchtigkeit in die Queue
         if (xQueueOverwrite(dhtDataQueue, &dhtData) != pdPASS)

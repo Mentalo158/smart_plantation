@@ -19,6 +19,6 @@ typedef struct
 } dht_data_t;
 
 // Funktion zur Messung von Temperatur und Feuchtigkeit
-dht_data_t temperature_sensor(void);
+dht_data_t read_temperature_sensor(void);
 
 #endif // TEMPERATURE_SENSOR_H

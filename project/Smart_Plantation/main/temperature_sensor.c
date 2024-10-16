@@ -6,7 +6,7 @@
  *
  * @return dht_data_t Struktur mit den gelesenen Werten.
  */
-dht_data_t temperature_sensor(void)
+dht_data_t read_temperature_sensor(void)
 {
     dht_data_t dhtData;
 
