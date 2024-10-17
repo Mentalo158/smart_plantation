@@ -1,5 +1,5 @@
 #include "task_common.h"
-#include "adc_sensor.h"
+#include "adc_read.h"
 #include "wifi-server.h"
 #include "mdns_server.h"
 #include "esp_log.h"
@@ -9,8 +9,9 @@
 #define ITEM_SIZE sizeof(float) // Größe eines einzelnen Queue-Elements
 
 // Globales Handle für die ADC-Daten-Queue und DHT-Daten-Queue
-QueueHandle_t adcDataQueue;
-QueueHandle_t dhtDataQueue; 
+QueueHandle_t moistureDataQueue;
+QueueHandle_t dhtDataQueue;
+QueueHandle_t lightDataQueue;
 
 /**
  * @brief ADC Sensor Task.
@@ -21,7 +22,7 @@ QueueHandle_t dhtDataQueue;
  *
  * @param pvParameters Pointer zu den übergebenen Parametern (nicht verwendet).
  */
-void adcTask(void *pvParameters)
+void moisture_task(void *pvParameters)
 {
     adc_init(ADC_CH_4, ADC_WIDTH_BIT_12, MOISTURE_ATTEN); // ADC initialisieren, ADC_CH_4 ist ADC1_CHANNEL_4 (GPIO32)
 
@@ -30,7 +31,7 @@ void adcTask(void *pvParameters)
         float adcValue = adc_read_sensor(ADC_CH_4); // ADC-Wert lesen von ADC_CH_4
 
         // Versuche, den ADC-Wert in die Queue zu schreiben
-        if (xQueueOverwrite(adcDataQueue, &adcValue) != pdPASS)
+        if (xQueueOverwrite(moistureDataQueue, &adcValue) != pdPASS)
         {
             ESP_LOGE("ADC_Sensor", "Failed to overwrite ADC value in queue"); // Fehler beim Schreiben in die Queue
         }
@@ -73,6 +74,28 @@ void dhtTask(void *pvParameters)
     }
 }
 
+void light_sensor_task(void *pvParameters)
+{
+    adc_init(ADC_CH_5, ADC_WIDTH_BIT_12, LIGHT_ATTEN); // Verwende den richtigen ADC-Kanal für den Lichtsensor
+
+    while (1)
+    {
+        float adcValue = adc_read_sensor(ADC_CH_5); // ADC-Wert vom Lichtsensor lesen
+
+        // Versuche, den ADC-Wert in die Queue zu schreiben
+        if (xQueueOverwrite(lightDataQueue, &adcValue) != pdPASS)
+        {
+            ESP_LOGE("Light_Sensor", "Failed to overwrite light sensor value in queue");
+        }
+        else
+        {
+            ESP_LOGI("Light_Sensor", "Light Sensor Value: %.2f", adcValue); // Erfolgreiches Schreiben, Ausgabe des Wertes
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(1000)); // 1 Sekunde warten
+    }
+}
+
 /**
  * @brief Webserver und mDNS Task.
  *
@@ -112,8 +135,8 @@ void webServerTask(void *pvParameters)
 void init_queue()
 {
     // ADC Queue initialisieren
-    adcDataQueue = xQueueCreate(QUEUE_LENGTH, ITEM_SIZE);
-    if (adcDataQueue == NULL)
+    moistureDataQueue = xQueueCreate(QUEUE_LENGTH, ITEM_SIZE);
+    if (moistureDataQueue == NULL)
     {
         ESP_LOGE("Task_Common", "ADC Queue creation failed!"); // Fehler beim Erstellen der ADC Queue
     }
@@ -123,5 +146,11 @@ void init_queue()
     if (dhtDataQueue == NULL)
     {
         ESP_LOGE("Task_Common", "DHT Queue creation failed!"); // Fehler beim Erstellen der DHT Queue
+    }
+
+    lightDataQueue = xQueueCreate(QUEUE_LENGTH, ITEM_SIZE);
+    if (lightDataQueue == NULL)
+    {
+        ESP_LOGE("Task_Common", "Light Sensor Queue creation failed!");
     }
 }

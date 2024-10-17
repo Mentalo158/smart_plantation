@@ -5,28 +5,45 @@
 #include "sdkconfig.h"
 #include "temperature_sensor.h"
 
-// Globale Variablen für WLAN-Konfiguration
-const char *ssid = CONFIG_WIFI_SSID;     ///< SSID des WLANs
-const char *pass = CONFIG_WIFI_PASSWORD; ///< Passwort für das WLAN
-int retry_num = 0;                       ///< Zähler für Wiederholungsversuche bei der WLAN-Verbindung
+const char *ssid = CONFIG_WIFI_SSID;
+const char *pass = CONFIG_WIFI_PASSWORD;
+int retry_num = 0;
 
-httpd_handle_t start_webserver(void);            ///< Prototyp für die Funktion zum Starten des Webservers
-void stop_webserver(httpd_handle_t http_server); ///< Prototyp für die Funktion zum Stoppen des Webservers
+/**
+ * @brief Eingebettete binäre Daten für verschiedene Ressourcen.
+ *
+ * Diese externen Variablen referenzieren die Start- und Endpunkte
+ * von eingebetteten binären Daten, die in der Anwendung verwendet
+ * werden. Die Daten umfassen HTML, CSS, JavaScript und Favicon-Ressourcen.
+ *
+ * Jede Datei benötigt sowohl einen Start- als auch einen Endzeiger,
+ * um den vollständigen Bereich der eingebetteten Daten im Speicher
+ * korrekt zu definieren.
+ * - Der Startzeiger (@c _start) zeigt auf den Beginn der Datei im
+ *   Speicher, wodurch der Zugriff auf die Daten ermöglicht wird.
+ * - Der Endzeiger (@c _end) definiert das Ende der Datei, was wichtig
+ *   ist, um die Größe der Daten zu bestimmen und sicherzustellen,
+ *   dass beim Zugriff auf die Daten keine unzulässigen Speicherbereiche
+ *   überschritten werden.
+ *
+ * @note Jede Variable wird mit einer speziellen Assemblierungsanweisung
+ * (@c asm) versehen, um sicherzustellen, dass die richtigen
+ * Symbole im Binary verfügbar sind.
+ */
+extern const uint8_t index_html_start[] asm("_binary_index_html_start");
+extern const uint8_t index_html_end[] asm("_binary_index_html_end");
+extern const uint8_t app_css_start[] asm("_binary_app_css_start");
+extern const uint8_t app_css_end[] asm("_binary_app_css_end");
+extern const uint8_t app_js_start[] asm("_binary_app_js_start");
+extern const uint8_t app_js_end[] asm("_binary_app_js_end");
+extern const uint8_t favicon_ico_start[] asm("_binary_favicon_ico_start");
+extern const uint8_t favicon_ico_end[] asm("_binary_favicon_ico_end");
+extern const uint8_t htmx_js_start[] asm("_binary_htmx_min_js_start");
+extern const uint8_t htmx_js_end[] asm("_binary_htmx_min_js_end");
 
-// Eingebettete Dateien (HTML, CSS, JS, Favicon)
-extern const uint8_t index_html_start[] asm("_binary_index_html_start");   ///< Start der HTML-Datei
-extern const uint8_t index_html_end[] asm("_binary_index_html_end");       ///< Ende der HTML-Datei
-extern const uint8_t app_css_start[] asm("_binary_app_css_start");         ///< Start der CSS-Datei
-extern const uint8_t app_css_end[] asm("_binary_app_css_end");             ///< Ende der CSS-Datei
-extern const uint8_t app_js_start[] asm("_binary_app_js_start");           ///< Start der JS-Datei
-extern const uint8_t app_js_end[] asm("_binary_app_js_end");               ///< Ende der JS-Datei
-extern const uint8_t favicon_ico_start[] asm("_binary_favicon_ico_start"); ///< Start des Favicon
-extern const uint8_t favicon_ico_end[] asm("_binary_favicon_ico_end");     ///< Ende des Favicon
-extern const uint8_t htmx_js_start[] asm("_binary_htmx_min_js_start");     ///< Start der HTMX JS-Datei
-extern const uint8_t htmx_js_end[] asm("_binary_htmx_min_js_end");         ///< Ende der HTMX JS-Datei
-
-extern QueueHandle_t adcDataQueue;
+extern QueueHandle_t moistureDataQueue;
 extern QueueHandle_t dhtDataQueue;
+extern QueueHandle_t lightDataQueue;
 
 /**
  * @brief WLAN-Ereignishandler.
@@ -39,7 +56,7 @@ extern QueueHandle_t dhtDataQueue;
  * @param event_id ID des Ereignisses.
  * @param event_data Daten des Ereignisses.
  */
-static void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
+void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
 {
     if (event_id == WIFI_EVENT_STA_START)
     {
@@ -146,15 +163,14 @@ esp_err_t htmx_handler(httpd_req_t *req)
  */
 esp_err_t moisture_value_handler(httpd_req_t *req)
 {
-    float adcValue = 0.0;
+    float moisturePercentage = 0.0f;
 
-    if (xQueuePeek(adcDataQueue, &adcValue, 0) == pdTRUE)
+    if (xQueuePeek(moistureDataQueue, &moisturePercentage, 0) == pdTRUE)
     {
         char response[128];
-        snprintf(response, sizeof(response),
-                 "<div id=\"moistureProgress\" style=\"width: %.2f%%;\">Moisture Level: %.2f%%</div>",
-                 adcValue, adcValue);
-        httpd_resp_set_type(req, "text/html");
+        // Gebe den Feuchtigkeitswert zurück
+        snprintf(response, sizeof(response), "Bodenfeuchte: %.2f%%", moisturePercentage);
+        httpd_resp_set_type(req, "text/plain");
         httpd_resp_send(req, response, strlen(response));
     }
     else
@@ -179,18 +195,41 @@ esp_err_t temperature_value_handler(httpd_req_t *req)
 
     if (xQueuePeek(dhtDataQueue, &dhtData, 0) == pdTRUE)
     {
-        char response[256];
+        char response[128]; // Passen wir die Größe an, da keine <div> um den Text nötig ist
         snprintf(response, sizeof(response),
-                 "<div id=\"temperatureDisplay\">Temperatur: %.2f °C</div>"
-                 "<div id=\"humidityDisplay\">Luftfeuchtigkeit: %.2f %%</div>",
+                 "Temperatur: %.2f °C\n"
+                 "Luftfeuchtigkeit: %.2f %%",
                  dhtData.temperature, dhtData.humidity);
-        httpd_resp_set_type(req, "text/html");
+
+        httpd_resp_set_type(req, "text/plain"); // Es wird nur Text zurückgegeben
         httpd_resp_send(req, response, strlen(response));
     }
     else
     {
         httpd_resp_send_404(req); // Keine Daten vorhanden
     }
+    return ESP_OK;
+}
+
+esp_err_t light_sensor_value_handler(httpd_req_t *req)
+{
+    float lightPercentage = 0.0f;
+
+    // Überprüfe, ob ein Lichtwert in der Queue verfügbar ist
+    if (xQueuePeek(lightDataQueue, &lightPercentage, 0) == pdTRUE)
+    {
+        // Antwort mit Lichtwert (in Prozent)
+        char response[64];
+        snprintf(response, sizeof(response), "%.2f", lightPercentage); // Nur der Prozentsatz wird zurückgegeben
+
+        httpd_resp_set_type(req, "text/plain");           // Rückgabe als einfacher Text
+        httpd_resp_send(req, response, strlen(response)); // Sende den Lichtwert zurück
+    }
+    else
+    {
+        httpd_resp_send_404(req); // Falls keine Daten verfügbar sind, sende 404
+    }
+
     return ESP_OK;
 }
 
@@ -237,6 +276,12 @@ httpd_uri_t temperature_uri = {
     .uri = "/temperature",
     .method = HTTP_GET,
     .handler = temperature_value_handler,
+    .user_ctx = NULL};
+
+httpd_uri_t light_uri = {
+    .uri = "/light",
+    .method = HTTP_GET,
+    .handler = light_sensor_value_handler,
     .user_ctx = NULL};
 
 /**
@@ -301,6 +346,8 @@ httpd_handle_t start_webserver(void)
         httpd_register_uri_handler(http_server, &favicon_uri);
         httpd_register_uri_handler(http_server, &adc_uri);
         httpd_register_uri_handler(http_server, &temperature_uri);
+        httpd_register_uri_handler(http_server, &light_uri);
+
         return http_server; // Gibt das Handle des gestarteten HTTP-Servers zurück
     }
 

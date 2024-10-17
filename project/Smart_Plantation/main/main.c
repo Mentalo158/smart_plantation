@@ -2,7 +2,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "task_common.h"
-#include "adc_sensor.h"
+#include "adc_read.h"
 #include "wifi-server.h"
 #include "mdns_server.h"
 #include "esp_log.h"
@@ -38,7 +38,8 @@ void app_main()
     wifi_connection(); // Stellt eine Verbindung zum WLAN her
 
     // Tasks erstellen
-    xTaskCreatePinnedToCore(adcTask, "ADC Sensor Task", 2048, NULL, 1, NULL, 1);       // ADC Task auf Core 1
-    xTaskCreatePinnedToCore(dhtTask, "DHT Sensor Task", 2048, NULL, 1, NULL, 1);       // DHT Task auf Core 1
-    xTaskCreatePinnedToCore(webServerTask, "Web Server Task", 8192, NULL, 1, NULL, 0); // Webserver auf Core 0
+    xTaskCreatePinnedToCore(moisture_task, "Moisture Sensor Task", 2048, NULL, 1, NULL, 1);  // ADC Task auf Core 1
+    xTaskCreatePinnedToCore(dhtTask, "DHT Sensor Task", 2048, NULL, 1, NULL, 1);             // DHT Task auf Core 1
+    xTaskCreatePinnedToCore(light_sensor_task, "Light Sensor Task", 2048, NULL, 1, NULL, 1); // ADC Task auf Core 1
+    xTaskCreatePinnedToCore(webServerTask, "Web Server Task", 8192, NULL, 1, NULL, 0);       // Webserver auf Core 0
 }

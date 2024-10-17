@@ -1,7 +1,7 @@
 document.addEventListener("htmx:afterSwap", (event) => {
     if (event.target.id === "moistureText") {
-        const moistureText = event.target.innerText;
-        const moistureValue = parseFloat(moistureText.match(/[\d\.]+/)[0]);
+        const moistureText = event.target.innerText; // Lese den Text für die Bodenfeuchte
+        const moistureValue = parseFloat(moistureText.match(/[\d\.]+/)[0]); // Extrahiere den Feuchtigkeitswert
 
         // Update progress bar width and color
         const moistureProgress = document.getElementById("moistureProgress");

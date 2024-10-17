@@ -19,27 +19,30 @@
 
     <div class="container">
         <div class="sensor-container">
+            <!-- Bodenfeuchte Text außerhalb des Balkens -->
             <div class="moisture-text" id="moistureText" hx-get="/adc" hx-trigger="load, every 1s" hx-swap="innerHTML">
-                Moisture Level: -
+                Bodenfeuchte: - %
             </div>
             <div id="moistureBar">
                 <div id="moistureProgress" style="width: 0%;"></div>
             </div>
+
+            <!-- Temperatur- und Feuchtigkeitsdaten -->
             <div id="temperatureDisplay" hx-get="/temperature" hx-trigger="load, every 1s" hx-swap="innerHTML">
                 Temperatur: -
             </div>
-            <div id="humidityDisplay" hx-get="/temperature" hx-trigger="load, every 1s" hx-swap="innerHTML">
-                Luftfeuchtigkeit: -
+
+            <!-- Lichtwert vom Lichtsensor -->
+            <div id="lightDisplay" hx-get="/light" hx-trigger="load, every 1s" hx-swap="innerHTML">
+                Lichtintensität: - %
             </div>
         </div>
 
         <div class="data-container empty-data">
-            <!-- Hier können später weitere Daten angezeigt werden -->
+            <!-- Platzhalter für zukünftige Daten -->
             Daten werden hier angezeigt demnächst...
         </div>
     </div>
-
-
 </body>
 
 </html>

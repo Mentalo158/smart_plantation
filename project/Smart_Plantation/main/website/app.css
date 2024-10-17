@@ -59,31 +59,29 @@ body {
 
 #moistureBar {
     width: 100%;
-    /* Breite des Fortschrittbalkens auf 100% setzen */
-    background-color: rgba(100, 44, 44, 0.596);
-    /* Braune Farbe für den Bar */
+    background-color: grey;
+    /* Hintergrundfarbe des Balkens */
     height: 30px;
     border-radius: 5px;
     overflow: hidden;
-    margin-top: 20px;
+    margin-top: 10px;
+    /* Abstand zwischen Text und Balken */
 }
 
 #moistureProgress {
-    width: 0;
-    background-color: green;
-    /* Anfangsfarbe grün */
+    /* Anfangsfarbe des Fortschrittsbalkens */
     height: 100%;
-    text-align: center;
-    color: black;
-    line-height: 30px;
-    transition: width 0.5s ease-in-out, background-color 0.5s ease-in-out;
-    /* Übergang für die Breite und Hintergrundfarbe */
 }
 
-.moisture-text {
+#moistureText {
     font-size: 18px;
+    /* Schriftgröße für den Text */
+    margin-bottom: 5px;
+    /* Abstand nach unten zwischen Text und Balken */
     color: black;
+    /* Textfarbe */
     font-weight: bold;
+    /* Fettdruck für den Text */
 }
 
 .divider {
