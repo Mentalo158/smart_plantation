@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="app.css">
+    <script src="https://unpkg.com/htmx.org@1.9.2"></script>
+    <script src="app.js" defer></script>
+    <title>Smart Plantation</title>
+</head>
+
+<body>
+    <div class="logo-container">
+        <img src="Logo.png" alt="Logo" style="max-width: 100%; height: auto; margin-bottom: 20px;">
+    </div>
+
+    <hr class="divider">
+
+    <div class="container">
+        <div class="sensor-container">
+            <!-- Bodenfeuchte Text außerhalb des Balkens -->
+            <div class="moisture-text" id="moistureText" hx-get="/adc" hx-trigger="load, every 1s" hx-swap="innerHTML">
+                Bodenfeuchte: - %
+            </div>
+            <div id="moistureBar">
+                <div id="moistureProgress" style="width: 0%;"></div>
+            </div>
+
+            <!-- Temperatur- und Feuchtigkeitsdaten -->
+            <div id="temperatureDisplay" hx-get="/temperature" hx-trigger="load, every 1s" hx-swap="innerHTML">
+                Temperatur: -
+            </div>
+
+            <!-- Lichtwert vom Lichtsensor -->
+            <div id="lightDisplay" hx-get="/light" hx-trigger="load, every 1s" hx-swap="innerHTML">
+                Lichtintensität: - %
+            </div>
+        </div>
+
+        <div class="data-container empty-data">
+            <!-- Platzhalter für zukünftige Daten -->
+            Daten werden hier angezeigt demnächst...
+        </div>
+    </div>
+</body>
+
+</html>

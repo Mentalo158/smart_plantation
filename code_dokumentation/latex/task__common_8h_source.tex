@@ -1,0 +1,22 @@
+\doxysection{task\+\_\+common.\+h}
+\hypertarget{task__common_8h_source}{}\label{task__common_8h_source}\index{task\_common.h@{task\_common.h}}
+\mbox{\hyperlink{task__common_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ TASK\_COMMON\_H}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ TASK\_COMMON\_H}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}freertos/FreeRTOS.h"{}}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ "{}freertos/task.h"{}}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ "{}freertos/queue.h"{}}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{comment}{//\ Deklaration\ der\ Queue\ für\ den\ ADC}}
+\DoxyCodeLine{00009\ \textcolor{keyword}{extern}\ QueueHandle\_t\ \mbox{\hyperlink{task__common_8h_ae6eb9a39bb5c0b52d68cfe5a02ae1bd3}{adcDataQueue}};}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{comment}{//\ Funktion\ zur\ Initialisierung\ der\ Tasks}}
+\DoxyCodeLine{00012\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{task__common_8h_a75fa0f87c55e7e108d85a843cffcbeb3}{adcSensorTask}}(\textcolor{keywordtype}{void}\ *pvParameters);}
+\DoxyCodeLine{00013\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{task__common_8h_a571ecf6f1d11b90c386e2c900a8867e3}{webServerTask}}(\textcolor{keywordtype}{void}\ *pvParameters);}
+\DoxyCodeLine{00014\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{task__common_8h_ae733fe874122894bac75e1be37326ceb}{init\_queue}}();}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ TASK\_COMMON\_H}}
+
+\end{DoxyCode}

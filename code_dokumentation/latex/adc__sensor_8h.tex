@@ -1,0 +1,103 @@
+\doxysection{adc\+\_\+sensor.\+h File Reference}
+\hypertarget{adc__sensor_8h}{}\label{adc__sensor_8h}\index{adc\_sensor.h@{adc\_sensor.h}}
+{\ttfamily \#include $<$stdio.\+h$>$}\newline
+{\ttfamily \#include "{}esp\+\_\+err.\+h"{}}\newline
+{\ttfamily \#include "{}driver/adc.\+h"{}}\newline
+{\ttfamily \#include "{}esp\+\_\+adc/adc\+\_\+oneshot.\+h"{}}\newline
+\doxysubsubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{adc__sensor_8h_a193789bbb032f62143157502dfaefbed}{ADC\+\_\+\+CH\+\_\+4}}~ADC1\+\_\+\+CHANNEL\+\_\+4
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{adc__sensor_8h_ac07137b5501373aeb6554b57e27e08f9}{adc\+\_\+init}} (adc\+\_\+channel\+\_\+t channel, adc\+\_\+bits\+\_\+width\+\_\+t bit\+\_\+width)
+\begin{DoxyCompactList}\small\item\em Initialisiert den ADC. \end{DoxyCompactList}\item 
+float \mbox{\hyperlink{adc__sensor_8h_acbb65396d151bc12f1b006bfc7c65b2e}{adc\+\_\+read\+\_\+sensor}} (adc\+\_\+channel\+\_\+t channel)
+\begin{DoxyCompactList}\small\item\em Liest den Wert des angegebenen ADC-\/\+Kanals. \end{DoxyCompactList}\item 
+float \mbox{\hyperlink{adc__sensor_8h_a71470343d584d2bcd7b4084c00bedb50}{adc\+To\+Percentage}} (uint32\+\_\+t adc\+Value)
+\begin{DoxyCompactList}\small\item\em Wandelt einen ADC-\/\+Wert in einen Prozentwert um. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{adc__sensor_8h_a62f6b705ea4d8431dbbb921fe93f6ec4}{adc\+\_\+cleanup}} ()
+\begin{DoxyCompactList}\small\item\em Bereinigt die ADC-\/\+Ressourcen. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Macro Definition Documentation}
+\Hypertarget{adc__sensor_8h_a193789bbb032f62143157502dfaefbed}\index{adc\_sensor.h@{adc\_sensor.h}!ADC\_CH\_4@{ADC\_CH\_4}}
+\index{ADC\_CH\_4@{ADC\_CH\_4}!adc\_sensor.h@{adc\_sensor.h}}
+\doxysubsubsection{\texorpdfstring{ADC\_CH\_4}{ADC\_CH\_4}}
+{\footnotesize\ttfamily \label{adc__sensor_8h_a193789bbb032f62143157502dfaefbed} 
+\#define ADC\+\_\+\+CH\+\_\+4~ADC1\+\_\+\+CHANNEL\+\_\+4}
+
+
+
+\doxysubsection{Function Documentation}
+\Hypertarget{adc__sensor_8h_a62f6b705ea4d8431dbbb921fe93f6ec4}\index{adc\_sensor.h@{adc\_sensor.h}!adc\_cleanup@{adc\_cleanup}}
+\index{adc\_cleanup@{adc\_cleanup}!adc\_sensor.h@{adc\_sensor.h}}
+\doxysubsubsection{\texorpdfstring{adc\_cleanup()}{adc\_cleanup()}}
+{\footnotesize\ttfamily \label{adc__sensor_8h_a62f6b705ea4d8431dbbb921fe93f6ec4} 
+void adc\+\_\+cleanup (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Bereinigt die ADC-\/\+Ressourcen. 
+
+Diese Funktion löscht die Kalibrierungsschemata und gibt die Ressourcen des ADC frei. \Hypertarget{adc__sensor_8h_ac07137b5501373aeb6554b57e27e08f9}\index{adc\_sensor.h@{adc\_sensor.h}!adc\_init@{adc\_init}}
+\index{adc\_init@{adc\_init}!adc\_sensor.h@{adc\_sensor.h}}
+\doxysubsubsection{\texorpdfstring{adc\_init()}{adc\_init()}}
+{\footnotesize\ttfamily \label{adc__sensor_8h_ac07137b5501373aeb6554b57e27e08f9} 
+void adc\+\_\+init (\begin{DoxyParamCaption}\item[{adc\+\_\+channel\+\_\+t}]{channel}{, }\item[{adc\+\_\+bits\+\_\+width\+\_\+t}]{bitwidth}{}\end{DoxyParamCaption})}
+
+
+
+Initialisiert den ADC. 
+
+Diese Funktion initialisiert den ADC mit der angegebenen Kanal-\/ und Bitbreite und konfiguriert die Kalibrierung.
+
+
+\begin{DoxyParams}{Parameters}
+{\em channel} & Der ADC-\/\+Kanal, der initialisiert werden soll. \\
+\hline
+{\em bitwidth} & Die Bitbreite für den ADC (z. B. ADC\+\_\+\+WIDTH\+\_\+\+BIT\+\_\+12). \\
+\hline
+\end{DoxyParams}
+\Hypertarget{adc__sensor_8h_acbb65396d151bc12f1b006bfc7c65b2e}\index{adc\_sensor.h@{adc\_sensor.h}!adc\_read\_sensor@{adc\_read\_sensor}}
+\index{adc\_read\_sensor@{adc\_read\_sensor}!adc\_sensor.h@{adc\_sensor.h}}
+\doxysubsubsection{\texorpdfstring{adc\_read\_sensor()}{adc\_read\_sensor()}}
+{\footnotesize\ttfamily \label{adc__sensor_8h_acbb65396d151bc12f1b006bfc7c65b2e} 
+float adc\+\_\+read\+\_\+sensor (\begin{DoxyParamCaption}\item[{adc\+\_\+channel\+\_\+t}]{channel}{}\end{DoxyParamCaption})}
+
+
+
+Liest den Wert des angegebenen ADC-\/\+Kanals. 
+
+Diese Funktion liest den aktuellen ADC-\/\+Wert und gibt ihn als Prozentsatz zurück.
+
+
+\begin{DoxyParams}{Parameters}
+{\em channel} & Der ADC-\/\+Kanal, von dem gelesen werden soll. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+float Der aktuelle ADC-\/\+Wert in Prozent. 
+\end{DoxyReturn}
+\Hypertarget{adc__sensor_8h_a71470343d584d2bcd7b4084c00bedb50}\index{adc\_sensor.h@{adc\_sensor.h}!adcToPercentage@{adcToPercentage}}
+\index{adcToPercentage@{adcToPercentage}!adc\_sensor.h@{adc\_sensor.h}}
+\doxysubsubsection{\texorpdfstring{adcToPercentage()}{adcToPercentage()}}
+{\footnotesize\ttfamily \label{adc__sensor_8h_a71470343d584d2bcd7b4084c00bedb50} 
+float adc\+To\+Percentage (\begin{DoxyParamCaption}\item[{uint32\+\_\+t}]{adc\+Value}{}\end{DoxyParamCaption})}
+
+
+
+Wandelt einen ADC-\/\+Wert in einen Prozentwert um. 
+
+Diese Funktion rechnet den Rohwert des ADC in einen Prozentsatz um.
+
+
+\begin{DoxyParams}{Parameters}
+{\em adc\+Value} & Der ADC-\/\+Rohwert, der umgerechnet werden soll. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+float Der umgerechnete Wert in Prozent. 
+\end{DoxyReturn}

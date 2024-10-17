@@ -1,0 +1,40 @@
+\doxysection{mdns\+\_\+server.\+c File Reference}
+\hypertarget{mdns__server_8c}{}\label{mdns__server_8c}\index{mdns\_server.c@{mdns\_server.c}}
+{\ttfamily \#include "{}mdns\+\_\+server.\+h"{}}\newline
+{\ttfamily \#include "{}esp\+\_\+log.\+h"{}}\newline
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{mdns__server_8c_a5058ed36f14c851bfd5b72fcdc9c1112}{start\+\_\+mdns}} (const char \texorpdfstring{$\ast$}{*}hostname, const char \texorpdfstring{$\ast$}{*}instance\+\_\+name, const char \texorpdfstring{$\ast$}{*}service\+\_\+type, const char \texorpdfstring{$\ast$}{*}protocol, uint16\+\_\+t port)
+\begin{DoxyCompactList}\small\item\em Initialisiert den m\+DNS-\/\+Dienst für das Gerät. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Function Documentation}
+\Hypertarget{mdns__server_8c_a5058ed36f14c851bfd5b72fcdc9c1112}\index{mdns\_server.c@{mdns\_server.c}!start\_mdns@{start\_mdns}}
+\index{start\_mdns@{start\_mdns}!mdns\_server.c@{mdns\_server.c}}
+\doxysubsubsection{\texorpdfstring{start\_mdns()}{start\_mdns()}}
+{\footnotesize\ttfamily \label{mdns__server_8c_a5058ed36f14c851bfd5b72fcdc9c1112} 
+void start\+\_\+mdns (\begin{DoxyParamCaption}\item[{const char \texorpdfstring{$\ast$}{*}}]{hostname}{, }\item[{const char \texorpdfstring{$\ast$}{*}}]{instance\+\_\+name}{, }\item[{const char \texorpdfstring{$\ast$}{*}}]{service\+\_\+type}{, }\item[{const char \texorpdfstring{$\ast$}{*}}]{protocol}{, }\item[{uint16\+\_\+t}]{port}{}\end{DoxyParamCaption})}
+
+
+
+Initialisiert den m\+DNS-\/\+Dienst für das Gerät. 
+
+Diese Funktion richtet den m\+DNS-\/\+Dienst ein, damit das Gerät im lokalen Netzwerk als Dienst angezeigt wird. Es verwendet den angegebenen Hostnamen, Dienstnamen und Netzwerkprotokoll.
+
+
+\begin{DoxyParams}{Parameters}
+{\em hostname} & Der Hostname, der für m\+DNS verwendet werden soll. \\
+\hline
+{\em instance\+\_\+name} & Der Name des Dienstes (z.\+B. "{}\+Smart Plantation"{}). \\
+\hline
+{\em service\+\_\+type} & Der Typ des Dienstes (z.\+B. "{}\+\_\+http.\+\_\+tcp"{}). \\
+\hline
+{\em protocol} & Das Netzwerkprotokoll (z.\+B. "{}tcp"{}). \\
+\hline
+{\em port} & Die Portnummer, auf der der Dienst erreichbar ist.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+void 
+\end{DoxyReturn}

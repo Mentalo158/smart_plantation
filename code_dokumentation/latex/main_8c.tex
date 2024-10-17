@@ -1,0 +1,30 @@
+\doxysection{main.\+c File Reference}
+\hypertarget{main_8c}{}\label{main_8c}\index{main.c@{main.c}}
+{\ttfamily \#include $<$stdio.\+h$>$}\newline
+{\ttfamily \#include "{}freertos/\+Free\+RTOS.\+h"{}}\newline
+{\ttfamily \#include "{}freertos/queue.\+h"{}}\newline
+{\ttfamily \#include "{}task\+\_\+common.\+h"{}}\newline
+{\ttfamily \#include "{}adc\+\_\+sensor.\+h"{}}\newline
+{\ttfamily \#include "{}wifi-\/server.\+h"{}}\newline
+{\ttfamily \#include "{}mdns\+\_\+server.\+h"{}}\newline
+{\ttfamily \#include "{}esp\+\_\+log.\+h"{}}\newline
+{\ttfamily \#include "{}nvs\+\_\+flash.\+h"{}}\newline
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{main_8c_abce06be17fc37d675118a678a8100a36}{app\+\_\+main}} ()
+\begin{DoxyCompactList}\small\item\em Hauptanwendung. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Function Documentation}
+\Hypertarget{main_8c_abce06be17fc37d675118a678a8100a36}\index{main.c@{main.c}!app\_main@{app\_main}}
+\index{app\_main@{app\_main}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{app\_main()}{app\_main()}}
+{\footnotesize\ttfamily \label{main_8c_abce06be17fc37d675118a678a8100a36} 
+void app\+\_\+main (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Hauptanwendung. 
+
+Diese Funktion wird beim Start der Anwendung aufgerufen. Sie initialisiert den Non-\/\+Volatile Storage (NVS) Flash-\/\+Speicher, stellt eine WLAN-\/\+Verbindung her und erstellt die erforderlichen Tasks für den ADC-\/\+Sensor und den Webserver. 

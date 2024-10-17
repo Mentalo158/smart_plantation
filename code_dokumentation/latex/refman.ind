@@ -1,0 +1,187 @@
+\begin{theindex}
+
+  \item {adc1\_cali\_handle}
+    \subitem {adc\_sensor.c}, \hyperpage{5}
+  \item {adc1\_handle}
+    \subitem {adc\_sensor.c}, \hyperpage{5}
+  \item {ADC\_CH\_4}
+    \subitem {adc\_sensor.h}, \hyperpage{5}
+  \item {adc\_cleanup}
+    \subitem {adc\_sensor.c}, \hyperpage{3}
+    \subitem {adc\_sensor.h}, \hyperpage{5}
+  \item {adc\_init}
+    \subitem {adc\_sensor.c}, \hyperpage{3}
+    \subitem {adc\_sensor.h}, \hyperpage{5}
+  \item {adc\_read\_sensor}
+    \subitem {adc\_sensor.c}, \hyperpage{4}
+    \subitem {adc\_sensor.h}, \hyperpage{6}
+  \item {adc\_sensor.c}, \hyperpage{3}
+    \subitem {adc1\_cali\_handle}, \hyperpage{5}
+    \subitem {adc1\_handle}, \hyperpage{5}
+    \subitem {adc\_cleanup}, \hyperpage{3}
+    \subitem {adc\_init}, \hyperpage{3}
+    \subitem {adc\_read\_sensor}, \hyperpage{4}
+    \subitem {adcToPercentage}, \hyperpage{4}
+  \item {adc\_sensor.h}, \hyperpage{5}, \hyperpage{7}
+    \subitem {ADC\_CH\_4}, \hyperpage{5}
+    \subitem {adc\_cleanup}, \hyperpage{5}
+    \subitem {adc\_init}, \hyperpage{5}
+    \subitem {adc\_read\_sensor}, \hyperpage{6}
+    \subitem {adcToPercentage}, \hyperpage{6}
+  \item {adc\_uri}
+    \subitem {wifi-\/server.c}, \hyperpage{18}
+  \item {adc\_value\_handler}
+    \subitem {wifi-\/server.c}, \hyperpage{15}
+  \item {adcDataQueue}
+    \subitem {task\_common.c}, \hyperpage{12}
+    \subitem {task\_common.h}, \hyperpage{13}
+    \subitem {wifi-\/server.c}, \hyperpage{18}
+  \item {adcSensorTask}
+    \subitem {task\_common.c}, \hyperpage{11}
+    \subitem {task\_common.h}, \hyperpage{12}
+  \item {adcToPercentage}
+    \subitem {adc\_sensor.c}, \hyperpage{4}
+    \subitem {adc\_sensor.h}, \hyperpage{6}
+  \item {app\_main}
+    \subitem {main.c}, \hyperpage{7}
+  \item {asm}
+    \subitem {wifi-\/server.c}, \hyperpage{15, 16}
+
+  \indexspace
+
+  \item {css\_handler}
+    \subitem {wifi-\/server.c}, \hyperpage{16}
+  \item {css\_uri}
+    \subitem {wifi-\/server.c}, \hyperpage{19}
+  \item {current\_adc\_value}
+    \subitem {wifi-\/server.c}, \hyperpage{19}
+
+  \indexspace
+
+  \item {favicon\_handler}
+    \subitem {wifi-\/server.c}, \hyperpage{17}
+  \item {favicon\_uri}
+    \subitem {wifi-\/server.c}, \hyperpage{19}
+
+  \indexspace
+
+  \item {http\_handler}
+    \subitem {wifi-\/server.c}, \hyperpage{17}
+  \item {http\_uri}
+    \subitem {wifi-\/server.c}, \hyperpage{19}
+
+  \indexspace
+
+  \item {init\_queue}
+    \subitem {task\_common.c}, \hyperpage{11}
+    \subitem {task\_common.h}, \hyperpage{13}
+  \item {INSTANCE\_NAME}
+    \subitem {mdns\_server.h}, \hyperpage{9}
+  \item {ITEM\_SIZE}
+    \subitem {task\_common.c}, \hyperpage{11}
+
+  \indexspace
+
+  \item {js\_handler}
+    \subitem {wifi-\/server.c}, \hyperpage{17}
+  \item {js\_uri}
+    \subitem {wifi-\/server.c}, \hyperpage{19}
+
+  \indexspace
+
+  \item {main.c}, \hyperpage{7}
+    \subitem {app\_main}, \hyperpage{7}
+  \item {MDNS\_NAME}
+    \subitem {mdns\_server.h}, \hyperpage{9}
+  \item {mdns\_server.c}, \hyperpage{8}
+    \subitem {start\_mdns}, \hyperpage{8}
+  \item {mdns\_server.h}, \hyperpage{8}, \hyperpage{10}
+    \subitem {INSTANCE\_NAME}, \hyperpage{9}
+    \subitem {MDNS\_NAME}, \hyperpage{9}
+    \subitem {PORT}, \hyperpage{9}
+    \subitem {PROTOCOL}, \hyperpage{9}
+    \subitem {SERVICE\_TYPE}, \hyperpage{9}
+    \subitem {start\_mdns}, \hyperpage{9}
+
+  \indexspace
+
+  \item {pass}
+    \subitem {wifi-\/server.c}, \hyperpage{19}
+  \item {PORT}
+    \subitem {mdns\_server.h}, \hyperpage{9}
+  \item {PROTOCOL}
+    \subitem {mdns\_server.h}, \hyperpage{9}
+
+  \indexspace
+
+  \item {QUEUE\_LENGTH}
+    \subitem {task\_common.c}, \hyperpage{11}
+
+  \indexspace
+
+  \item {retry\_num}
+    \subitem {wifi-\/server.c}, \hyperpage{20}
+
+  \indexspace
+
+  \item {SERVICE\_TYPE}
+    \subitem {mdns\_server.h}, \hyperpage{9}
+  \item {ssid}
+    \subitem {wifi-\/server.c}, \hyperpage{20}
+  \item {start\_mdns}
+    \subitem {mdns\_server.c}, \hyperpage{8}
+    \subitem {mdns\_server.h}, \hyperpage{9}
+  \item {start\_webserver}
+    \subitem {wifi-\/server.c}, \hyperpage{18}
+    \subitem {wifi-\/server.h}, \hyperpage{20}
+  \item {stop\_webserver}
+    \subitem {wifi-\/server.c}, \hyperpage{18}
+
+  \indexspace
+
+  \item {task\_common.c}, \hyperpage{10}
+    \subitem {adcDataQueue}, \hyperpage{12}
+    \subitem {adcSensorTask}, \hyperpage{11}
+    \subitem {init\_queue}, \hyperpage{11}
+    \subitem {ITEM\_SIZE}, \hyperpage{11}
+    \subitem {QUEUE\_LENGTH}, \hyperpage{11}
+    \subitem {webServerTask}, \hyperpage{11}
+  \item {task\_common.h}, \hyperpage{12, 13}
+    \subitem {adcDataQueue}, \hyperpage{13}
+    \subitem {adcSensorTask}, \hyperpage{12}
+    \subitem {init\_queue}, \hyperpage{13}
+    \subitem {webServerTask}, \hyperpage{13}
+
+  \indexspace
+
+  \item {webServerTask}
+    \subitem {task\_common.c}, \hyperpage{11}
+    \subitem {task\_common.h}, \hyperpage{13}
+  \item {wifi-\/server.c}, \hyperpage{14}
+    \subitem {adc\_uri}, \hyperpage{18}
+    \subitem {adc\_value\_handler}, \hyperpage{15}
+    \subitem {adcDataQueue}, \hyperpage{18}
+    \subitem {asm}, \hyperpage{15, 16}
+    \subitem {css\_handler}, \hyperpage{16}
+    \subitem {css\_uri}, \hyperpage{19}
+    \subitem {current\_adc\_value}, \hyperpage{19}
+    \subitem {favicon\_handler}, \hyperpage{17}
+    \subitem {favicon\_uri}, \hyperpage{19}
+    \subitem {http\_handler}, \hyperpage{17}
+    \subitem {http\_uri}, \hyperpage{19}
+    \subitem {js\_handler}, \hyperpage{17}
+    \subitem {js\_uri}, \hyperpage{19}
+    \subitem {pass}, \hyperpage{19}
+    \subitem {retry\_num}, \hyperpage{20}
+    \subitem {ssid}, \hyperpage{20}
+    \subitem {start\_webserver}, \hyperpage{18}
+    \subitem {stop\_webserver}, \hyperpage{18}
+    \subitem {wifi\_connection}, \hyperpage{18}
+  \item {wifi-\/server.h}, \hyperpage{20, 21}
+    \subitem {start\_webserver}, \hyperpage{20}
+    \subitem {wifi\_connection}, \hyperpage{20}
+  \item {wifi\_connection}
+    \subitem {wifi-\/server.c}, \hyperpage{18}
+    \subitem {wifi-\/server.h}, \hyperpage{20}
+
+\end{theindex}

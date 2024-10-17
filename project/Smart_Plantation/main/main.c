@@ -1,30 +1,45 @@
 #include <stdio.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
+#include "task_common.h"
+#include "adc_read.h"
+#include "wifi-server.h"
+#include "mdns_server.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
-#include "esp_err.h"
-#include "wifi-server.h"
-#include "adc_sensor.c"
+#include "temperature_sensor.h"
 
-#define ADC_CH_4 ADC1_CHANNEL_4 // GPIO 32 auf dem ESP
-#define ADC_CH_5 ADC1_CHANNEL_5 // GPIO 33 auf dem ESP
-
-#define ADC_BITWIDTH ADC_WIDTH_BIT_12 //Je höher desto genauer hat seine vor- und nachteile zu lang zum erklären.
-// Wenn die Bit anzahl verändert wird muss auch die adcToPercentage funktion angepasst werden adc durch max Bitbreite adc/2^12 - 1 bspw.
-
-void app_main(void)
+/**
+ * @brief Hauptanwendung.
+ *
+ * Diese Funktion wird beim Start der Anwendung aufgerufen.
+ * Sie initialisiert den Non-Volatile Storage (NVS) Flash-Speicher,
+ * stellt eine WLAN-Verbindung her und erstellt die erforderlichen Tasks
+ * für den ADC-Sensor und den Webserver.
+ */
+void app_main()
 {
-    // Keine Ahnung, ChatGPT sagt das ist wichtig und cool
+    // Initialisiere den NVS-Flash-Speicher
     esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+
+    // Überprüfe auf Fehler beim Initialisieren des NVS
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
+    {
+        // Wenn kein Speicherplatz vorhanden ist oder eine neue Version gefunden wurde, lösche den NVS-Speicher
         ESP_ERROR_CHECK(nvs_flash_erase());
         ret = nvs_flash_init();
     }
-    ESP_ERROR_CHECK(ret);
+    ESP_ERROR_CHECK(ret); // Überprüfe auf weitere Fehler
 
-    wifi_connection();
-    start_webserver();
+    // Queue initialisieren
+    init_queue(); // Initialisiert die Queue für die Kommunikation zwischen Tasks
 
-    // adc_init(ADC_CH_4, ADC_BITWIDTH); // Muss vorher einmal aktiviert werden zum konfigurieren des jeweiligen channels
-    // float adcPercentage = adc_read_sensor(ADC_CH_4); // ein Sensor einlesen, einfach channel übergeben implementier das in ner while schleife
-    // adc_cleanup();      // Um die ADC's auszuschalten am Ende wenn wir das benötigen(Nicht in while nur eimal ausführen)
+    // WLAN-Verbindung herstellen
+    wifi_connection(); // Stellt eine Verbindung zum WLAN her
+
+    // Tasks erstellen
+    xTaskCreatePinnedToCore(moisture_task, "Moisture Sensor Task", 2048, NULL, 1, NULL, 1);  // ADC Task auf Core 1
+    xTaskCreatePinnedToCore(dhtTask, "DHT Sensor Task", 2048, NULL, 1, NULL, 1);             // DHT Task auf Core 1
+    xTaskCreatePinnedToCore(light_sensor_task, "Light Sensor Task", 2048, NULL, 1, NULL, 1); // ADC Task auf Core 1
+    xTaskCreatePinnedToCore(webServerTask, "Web Server Task", 8192, NULL, 1, NULL, 0);       // Webserver auf Core 0
 }
