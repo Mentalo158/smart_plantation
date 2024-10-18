@@ -3,7 +3,9 @@
 #include "esp_wifi.h"
 #include "nvs_flash.h"
 #include "sdkconfig.h"
-#include "temperature_sensor.h"
+#include "sensors/temperature_sensor.h"
+#include "peripherals/led_rgb.h"
+#include <sys/param.h>
 
 const char *ssid = CONFIG_WIFI_SSID;
 const char *pass = CONFIG_WIFI_PASSWORD;
@@ -44,6 +46,7 @@ extern const uint8_t htmx_js_end[] asm("_binary_htmx_min_js_end");
 extern QueueHandle_t moistureDataQueue;
 extern QueueHandle_t dhtDataQueue;
 extern QueueHandle_t lightDataQueue;
+extern QueueHandle_t led_queue;
 
 /**
  * @brief WLAN-Ereignishandler.
@@ -233,6 +236,45 @@ esp_err_t light_sensor_value_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
+esp_err_t led_control_handler(httpd_req_t *req)
+{
+    char content[100];
+    size_t recv_size = MIN(req->content_len, sizeof(content) - 1);
+
+    int ret = httpd_req_recv(req, content, recv_size);
+    if (ret <= 0)
+    {
+        if (ret == HTTPD_SOCK_ERR_TIMEOUT)
+        {
+            httpd_resp_send_408(req); // Timeout
+        }
+        return ESP_FAIL;
+    }
+
+    content[recv_size] = '\0'; // Terminieren der empfangenen Daten
+
+    int red = 0, green = 0, blue = 0;
+    sscanf(content, "R=%d&G=%d&B=%d", &red, &green, &blue); // Extrahieren der RGB-Werte
+
+    // Erstellen einer LED-Datenstruktur und setzen der empfangenen Werte
+    led_color_t led_data;
+    led_data.red = red;
+    led_data.green = green;
+    led_data.blue = blue;
+
+    // Sende die LED-Daten an die Queue
+    if (xQueueSend(led_queue, &led_data, pdMS_TO_TICKS(10)) != pdTRUE)
+    {
+        // Wenn das Senden an die Queue fehlschlägt
+        httpd_resp_send_500(req); // Fehler 500
+        return ESP_FAIL;
+    }
+
+    // Erfolgreiche Antwort
+    httpd_resp_send(req, "LED updated", HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
+
 // URI-Definitionen und Handler für HTML, CSS, JS und Favicon
 httpd_uri_t http_uri = {
     .uri = "/",
@@ -282,6 +324,12 @@ httpd_uri_t light_uri = {
     .uri = "/light",
     .method = HTTP_GET,
     .handler = light_sensor_value_handler,
+    .user_ctx = NULL};
+
+httpd_uri_t led_control_uri = {
+    .uri = "/led_control",
+    .method = HTTP_POST,
+    .handler = led_control_handler,
     .user_ctx = NULL};
 
 /**
@@ -347,6 +395,7 @@ httpd_handle_t start_webserver(void)
         httpd_register_uri_handler(http_server, &adc_uri);
         httpd_register_uri_handler(http_server, &temperature_uri);
         httpd_register_uri_handler(http_server, &light_uri);
+        httpd_register_uri_handler(http_server, &led_control_uri);
 
         return http_server; // Gibt das Handle des gestarteten HTTP-Servers zurück
     }

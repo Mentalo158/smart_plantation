@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="app.css">
     <script src="https://unpkg.com/htmx.org@1.9.2"></script>
-    <script src="app.js" defer></script>
+    <script src="app.js" defer></script> <!-- Verlinkung zur externen JavaScript-Datei -->
     <title>Smart Plantation</title>
 </head>
 
@@ -19,7 +19,6 @@
 
     <div class="container">
         <div class="sensor-container">
-            <!-- Bodenfeuchte Text außerhalb des Balkens -->
             <div class="moisture-text" id="moistureText" hx-get="/adc" hx-trigger="load, every 1s" hx-swap="innerHTML">
                 Bodenfeuchte: - %
             </div>
@@ -27,20 +26,31 @@
                 <div id="moistureProgress" style="width: 0%;"></div>
             </div>
 
-            <!-- Temperatur- und Feuchtigkeitsdaten -->
             <div id="temperatureDisplay" hx-get="/temperature" hx-trigger="load, every 1s" hx-swap="innerHTML">
                 Temperatur: -
             </div>
 
-            <!-- Lichtwert vom Lichtsensor -->
             <div id="lightDisplay" hx-get="/light" hx-trigger="load, every 1s" hx-swap="innerHTML">
                 Lichtintensität: - %
             </div>
         </div>
 
         <div class="data-container empty-data">
-            <!-- Platzhalter für zukünftige Daten -->
             Daten werden hier angezeigt demnächst...
+        </div>
+
+        <div class="led-control">
+            <h2>LED Steuerung</h2>
+            <!-- Farbauswahl -->
+            <input type="color" id="colorPicker" value="#ffffff">
+            <div class="color-box" id="colorBox"></div>
+
+            <form id="ledForm" hx-post="/led_control" hx-trigger="change">
+                <input type="hidden" id="red" name="R" value="255">
+                <input type="hidden" id="green" name="G" value="255">
+                <input type="hidden" id="blue" name="B" value="255">
+                <button type="submit">LED Farbe setzen</button>
+            </form>
         </div>
     </div>
 </body>

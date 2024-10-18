@@ -1,3 +1,3 @@
-idf_component_register(SRCS "mdns_server.c" "task_common.c" "adc_sensor.c" "main.c" "wifi-server.c" "temperature_sensor.c"
+idf_component_register(SRCS "peripherals/led_rgb.c" "backend/mdns_server.c" "common/task_common.c" "sensors/adc_read.c" "main.c" "backend/wifi-server.c" "sensors/temperature_sensor.c"
         INCLUDE_DIRS "."
         EMBED_FILES website/index.html website/app.css website/app.js website/favicon.ico)

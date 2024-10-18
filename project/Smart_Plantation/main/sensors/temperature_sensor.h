@@ -8,9 +8,6 @@
 #define DHT_TYPE_DHT11_SENSOR 11
 #define DHT_TYPE_DHT22_SENSOR 22
 
-// Beispiel GPIO-Pin für den DHT-Sensor
-#define DHT_GPIO_PIN 4
-
 // Struktur zur Speicherung der DHT-Daten
 typedef struct
 {
@@ -19,6 +16,6 @@ typedef struct
 } dht_data_t;
 
 // Funktion zur Messung von Temperatur und Feuchtigkeit
-dht_data_t read_temperature_sensor(void);
+dht_data_t read_temperature_sensor(int dhtGpio);
 
 #endif // TEMPERATURE_SENSOR_H

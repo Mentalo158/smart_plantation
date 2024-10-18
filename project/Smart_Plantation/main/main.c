@@ -1,13 +1,10 @@
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
-#include "task_common.h"
-#include "adc_read.h"
-#include "wifi-server.h"
-#include "mdns_server.h"
+#include "common/task_common.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
-#include "temperature_sensor.h"
+#include "backend/wifi-server.h"
 
 /**
  * @brief Hauptanwendung.
@@ -41,5 +38,6 @@ void app_main()
     xTaskCreatePinnedToCore(moisture_task, "Moisture Sensor Task", 2048, NULL, 1, NULL, 1);  // ADC Task auf Core 1
     xTaskCreatePinnedToCore(dhtTask, "DHT Sensor Task", 2048, NULL, 1, NULL, 1);             // DHT Task auf Core 1
     xTaskCreatePinnedToCore(light_sensor_task, "Light Sensor Task", 2048, NULL, 1, NULL, 1); // ADC Task auf Core 1
+    xTaskCreatePinnedToCore(led_task, "LED Task", 2048, NULL, 1, NULL, 1);                   // ADC Task auf Core 1
     xTaskCreatePinnedToCore(webServerTask, "Web Server Task", 8192, NULL, 1, NULL, 0);       // Webserver auf Core 0
 }
