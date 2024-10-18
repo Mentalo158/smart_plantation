@@ -22,17 +22,16 @@ void app_main()
     // Überprüfe auf Fehler beim Initialisieren des NVS
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
     {
-        // Wenn kein Speicherplatz vorhanden ist oder eine neue Version gefunden wurde, lösche den NVS-Speicher
         ESP_ERROR_CHECK(nvs_flash_erase());
         ret = nvs_flash_init();
     }
-    ESP_ERROR_CHECK(ret); // Überprüfe auf weitere Fehler
+    ESP_ERROR_CHECK(ret); 
 
     // Queue initialisieren
-    init_queue(); // Initialisiert die Queue für die Kommunikation zwischen Tasks
+    init_queue();
 
     // WLAN-Verbindung herstellen
-    wifi_connection(); // Stellt eine Verbindung zum WLAN her
+    wifi_connection();
 
     // Tasks erstellen
     xTaskCreatePinnedToCore(moisture_task, "Moisture Sensor Task", 2048, NULL, 1, NULL, 1);  // ADC Task auf Core 1

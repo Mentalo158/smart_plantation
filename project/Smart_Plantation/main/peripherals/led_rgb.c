@@ -11,9 +11,9 @@ void rgb_led_init(int pinRed, int pinGreen, int pinBlue)
     ledc_timer_config_t ledc_timer = {
         .speed_mode = LEDC_MODE,
         .timer_num = LEDC_TIMER,
-        .duty_resolution = LEDC_DUTY_RES, // Auflösung der PWM (z.B. 8 Bit)
-        .freq_hz = LEDC_FREQUENCY,        // PWM-Frequenz (z.B. 5000 Hz)
-        .clk_cfg = LEDC_AUTO_CLK          // Automatische Auswahl des Takts
+        .duty_resolution = LEDC_DUTY_RES, 
+        .freq_hz = LEDC_FREQUENCY,        
+        .clk_cfg = LEDC_AUTO_CLK          
     };
     ledc_timer_config(&ledc_timer);
 
@@ -23,8 +23,8 @@ void rgb_led_init(int pinRed, int pinGreen, int pinBlue)
         .channel = LEDC_CHANNEL_R,
         .timer_sel = LEDC_TIMER,
         .intr_type = LEDC_INTR_DISABLE,
-        .gpio_num = pinRed, // Übergebener Pin für Rot
-        .duty = 0,          // Anfangsdutycycle auf 0 (LED aus)
+        .gpio_num = pinRed, 
+        .duty = 0,          
         .hpoint = 0};
     ledc_channel_config(&ledc_channel_r);
 
@@ -34,7 +34,7 @@ void rgb_led_init(int pinRed, int pinGreen, int pinBlue)
         .channel = LEDC_CHANNEL_G,
         .timer_sel = LEDC_TIMER,
         .intr_type = LEDC_INTR_DISABLE,
-        .gpio_num = pinGreen, // Übergebener Pin für Grün
+        .gpio_num = pinGreen, 
         .duty = 0,
         .hpoint = 0};
     ledc_channel_config(&ledc_channel_g);
@@ -45,7 +45,7 @@ void rgb_led_init(int pinRed, int pinGreen, int pinBlue)
         .channel = LEDC_CHANNEL_B,
         .timer_sel = LEDC_TIMER,
         .intr_type = LEDC_INTR_DISABLE,
-        .gpio_num = pinBlue, // Übergebener Pin für Blau
+        .gpio_num = pinBlue, 
         .duty = 0,
         .hpoint = 0};
     ledc_channel_config(&ledc_channel_b);
@@ -53,7 +53,6 @@ void rgb_led_init(int pinRed, int pinGreen, int pinBlue)
 
 void rgb_set_color(uint8_t red, uint8_t green, uint8_t blue)
 {
-    // Setze die Helligkeit für jede Farbe (duty cycle) zwischen 0 und 255
     ledc_set_duty(LEDC_MODE, LEDC_CHANNEL_R, red);
     ledc_update_duty(LEDC_MODE, LEDC_CHANNEL_R);
 

@@ -48,17 +48,6 @@ extern QueueHandle_t dhtDataQueue;
 extern QueueHandle_t lightDataQueue;
 extern QueueHandle_t led_queue;
 
-/**
- * @brief WLAN-Ereignishandler.
- *
- * Diese Funktion behandelt verschiedene WLAN-Ereignisse wie
- * Verbindungsstatus und IP-Adressenvergabe.
- *
- * @param event_handler_arg Argument für den Ereignishandler (nicht verwendet).
- * @param event_base Basis des Ereignisses.
- * @param event_id ID des Ereignisses.
- * @param event_data Daten des Ereignisses.
- */
 void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
 {
     if (event_id == WIFI_EVENT_STA_START)
@@ -87,14 +76,6 @@ void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, in
     }
 }
 
-/**
- * @brief Handler für HTML-Anfragen.
- *
- * Diese Funktion verarbeitet HTTP-Anfragen für die HTML-Seite.
- *
- * @param req Pointer auf die HTTP-Anfrage.
- * @return ESP_OK bei Erfolg.
- */
 esp_err_t http_handler(httpd_req_t *req)
 {
     httpd_resp_set_type(req, "text/html");
@@ -102,14 +83,6 @@ esp_err_t http_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
-/**
- * @brief Handler für CSS-Anfragen.
- *
- * Diese Funktion verarbeitet HTTP-Anfragen für die CSS-Datei.
- *
- * @param req Pointer auf die HTTP-Anfrage.
- * @return ESP_OK bei Erfolg.
- */
 esp_err_t css_handler(httpd_req_t *req)
 {
     httpd_resp_set_type(req, "text/css");
@@ -117,14 +90,6 @@ esp_err_t css_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
-/**
- * @brief Handler für JavaScript-Anfragen.
- *
- * Diese Funktion verarbeitet HTTP-Anfragen für die JavaScript-Datei.
- *
- * @param req Pointer auf die HTTP-Anfrage.
- * @return ESP_OK bei Erfolg.
- */
 esp_err_t js_handler(httpd_req_t *req)
 {
     httpd_resp_set_type(req, "application/javascript");
@@ -132,14 +97,6 @@ esp_err_t js_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
-/**
- * @brief Handler für Favicon-Anfragen.
- *
- * Diese Funktion verarbeitet HTTP-Anfragen für das Favicon.
- *
- * @param req Pointer auf die HTTP-Anfrage.
- * @return ESP_OK bei Erfolg.
- */
 esp_err_t favicon_handler(httpd_req_t *req)
 {
     httpd_resp_set_type(req, "image/x-icon");
@@ -147,7 +104,6 @@ esp_err_t favicon_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
-// Handler für HTMX-Bibliothek
 esp_err_t htmx_handler(httpd_req_t *req)
 {
     httpd_resp_set_type(req, "application/javascript");
@@ -155,15 +111,6 @@ esp_err_t htmx_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
-/**
- * @brief Handler für ADC-Wert-Anfragen.
- *
- * Diese Funktion verarbeitet HTTP-Anfragen und gibt den letzten
- * ADC-Wert als JSON zurück.
- *
- * @param req Pointer auf die HTTP-Anfrage.
- * @return ESP_OK bei Erfolg.
- */
 esp_err_t moisture_value_handler(httpd_req_t *req)
 {
     float moisturePercentage = 0.0f;
@@ -178,38 +125,29 @@ esp_err_t moisture_value_handler(httpd_req_t *req)
     }
     else
     {
-        httpd_resp_send_404(req); // Keine Daten vorhanden
+        httpd_resp_send_404(req);
     }
     return ESP_OK;
 }
 
-/**
- * @brief Handler für Temperatur- und Feuchtigkeitsanfragen.
- *
- * Diese Funktion verarbeitet HTTP-Anfragen und gibt die Temperatur
- * und Feuchtigkeit als JSON zurück.
- *
- * @param req Pointer auf die HTTP-Anfrage.
- * @return ESP_OK bei Erfolg.
- */
 esp_err_t temperature_value_handler(httpd_req_t *req)
 {
     dht_data_t dhtData;
 
     if (xQueuePeek(dhtDataQueue, &dhtData, 0) == pdTRUE)
     {
-        char response[128]; // Passen wir die Größe an, da keine <div> um den Text nötig ist
+        char response[128];
         snprintf(response, sizeof(response),
                  "Temperatur: %.2f °C\n"
                  "Luftfeuchtigkeit: %.2f %%",
                  dhtData.temperature, dhtData.humidity);
 
-        httpd_resp_set_type(req, "text/plain"); // Es wird nur Text zurückgegeben
+        httpd_resp_set_type(req, "text/plain");
         httpd_resp_send(req, response, strlen(response));
     }
     else
     {
-        httpd_resp_send_404(req); // Keine Daten vorhanden
+        httpd_resp_send_404(req);
     }
     return ESP_OK;
 }
@@ -218,19 +156,18 @@ esp_err_t light_sensor_value_handler(httpd_req_t *req)
 {
     float lightPercentage = 0.0f;
 
-    // Überprüfe, ob ein Lichtwert in der Queue verfügbar ist
+
     if (xQueuePeek(lightDataQueue, &lightPercentage, 0) == pdTRUE)
     {
-        // Antwort mit Lichtwert (in Prozent)
         char response[64];
-        snprintf(response, sizeof(response), "%.2f", lightPercentage); // Nur der Prozentsatz wird zurückgegeben
+        snprintf(response, sizeof(response), "%.2f", lightPercentage); // Prozentsatz übergeben
 
-        httpd_resp_set_type(req, "text/plain");           // Rückgabe als einfacher Text
-        httpd_resp_send(req, response, strlen(response)); // Sende den Lichtwert zurück
+        httpd_resp_set_type(req, "text/plain");          
+        httpd_resp_send(req, response, strlen(response));
     }
     else
     {
-        httpd_resp_send_404(req); // Falls keine Daten verfügbar sind, sende 404
+        httpd_resp_send_404(req);
     }
 
     return ESP_OK;
@@ -246,12 +183,12 @@ esp_err_t led_control_handler(httpd_req_t *req)
     {
         if (ret == HTTPD_SOCK_ERR_TIMEOUT)
         {
-            httpd_resp_send_408(req); // Timeout
+            httpd_resp_send_408(req);
         }
         return ESP_FAIL;
     }
 
-    content[recv_size] = '\0'; // Terminieren der empfangenen Daten
+    content[recv_size] = '\0';
 
     int red = 0, green = 0, blue = 0;
     sscanf(content, "R=%d&G=%d&B=%d", &red, &green, &blue); // Extrahieren der RGB-Werte
@@ -265,8 +202,7 @@ esp_err_t led_control_handler(httpd_req_t *req)
     // Sende die LED-Daten an die Queue
     if (xQueueSend(led_queue, &led_data, pdMS_TO_TICKS(10)) != pdTRUE)
     {
-        // Wenn das Senden an die Queue fehlschlägt
-        httpd_resp_send_500(req); // Fehler 500
+        httpd_resp_send_500(req);
         return ESP_FAIL;
     }
 
@@ -275,7 +211,6 @@ esp_err_t led_control_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
-// URI-Definitionen und Handler für HTML, CSS, JS und Favicon
 httpd_uri_t http_uri = {
     .uri = "/",
     .method = HTTP_GET,
@@ -289,7 +224,7 @@ httpd_uri_t css_uri = {
     .user_ctx = NULL};
 
 httpd_uri_t js_uri = {
-    .uri = "/app.js", // Hier wird der URI für die JS-Datei definiert
+    .uri = "/app.js",
     .method = HTTP_GET,
     .handler = js_handler,
     .user_ctx = NULL};
@@ -300,7 +235,6 @@ httpd_uri_t favicon_uri = {
     .handler = favicon_handler,
     .user_ctx = NULL};
 
-// URI-Definition für HTMX JS-Datei
 httpd_uri_t htmx_uri = {
     .uri = "/htmx.min.js",
     .method = HTTP_GET,
@@ -313,7 +247,6 @@ httpd_uri_t adc_uri = {
     .handler = moisture_value_handler,
     .user_ctx = NULL};
 
-// URI-Definition für Temperatur- und Feuchtigkeitsanfragen
 httpd_uri_t temperature_uri = {
     .uri = "/temperature",
     .method = HTTP_GET,
@@ -332,12 +265,7 @@ httpd_uri_t led_control_uri = {
     .handler = led_control_handler,
     .user_ctx = NULL};
 
-/**
- * @brief Stellt die Verbindung zum WLAN her.
- *
- * Diese Funktion initialisiert das WLAN, registriert die Ereignis-Handler
- * und stellt die Verbindung zum definierten WLAN her.
- */
+
 void wifi_connection()
 {
     esp_netif_init();                    // Initialisiere das Netzwerkinterface
@@ -371,14 +299,6 @@ void wifi_connection()
     printf("wifi_init_softap finished. SSID:%s  password:%s", ssid, pass);
 }
 
-/**
- * @brief Startet den Webserver.
- *
- * Diese Funktion initialisiert und startet den HTTP-Server
- * und registriert die URI-Handler für HTML, CSS, JS und Favicon.
- *
- * @return httpd_handle_t Handle des gestarteten HTTP-Servers oder NULL bei Fehler.
- */
 httpd_handle_t start_webserver(void)
 {
     httpd_handle_t http_server = NULL;              // Handle für den HTTP-Server
@@ -387,7 +307,7 @@ httpd_handle_t start_webserver(void)
     // Startet den HTTP-Server
     if (httpd_start(&http_server, &config) == ESP_OK)
     {
-        // Registriere die Handler für HTML, CSS, JS und Favicon
+        // Registriere die Handlers
         httpd_register_uri_handler(http_server, &http_uri);
         httpd_register_uri_handler(http_server, &css_uri);
         httpd_register_uri_handler(http_server, &js_uri);

@@ -10,9 +10,9 @@
 #define LEDC_CHANNEL_R LEDC_CHANNEL_0
 #define LEDC_CHANNEL_G LEDC_CHANNEL_1
 #define LEDC_CHANNEL_B LEDC_CHANNEL_2
-#define LEDC_DUTY_RES LEDC_TIMER_8_BIT // PWM mit 8 Bit Auflösung (0-255)
-#define LEDC_DUTY_MAX 255              // Maximaler PWM-Wert
-#define LEDC_FREQUENCY 5000            // 5 kHz PWM Frequenz
+#define LEDC_DUTY_RES LEDC_TIMER_8_BIT 
+#define LEDC_DUTY_MAX 255              
+#define LEDC_FREQUENCY 5000            
 
 typedef struct
 {
