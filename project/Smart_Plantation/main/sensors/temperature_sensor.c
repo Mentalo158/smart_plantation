@@ -6,12 +6,12 @@
  *
  * @return dht_data_t Struktur mit den gelesenen Werten.
  */
-dht_data_t read_temperature_sensor(void)
+dht_data_t read_temperature_sensor(int dhtGpio)
 {
     dht_data_t dhtData;
 
     // Lese die Daten vom DHT-Sensor
-    if (dht_read_float_data(DHT_TYPE_AM2301, DHT_GPIO_PIN, &dhtData.humidity, &dhtData.temperature) == ESP_OK)
+    if (dht_read_float_data(DHT_TYPE_AM2301, dhtGpio, &dhtData.humidity, &dhtData.temperature) == ESP_OK)
     {
         ESP_LOGI("DHT Sensor", "Humidity: %.1f%%, Temperature: %.1f°C", dhtData.humidity, dhtData.temperature);
     }

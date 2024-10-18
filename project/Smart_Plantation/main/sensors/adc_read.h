@@ -10,10 +10,10 @@
 void adc_init(adc_channel_t channel, adc_bits_width_t bit_width, adc_atten_t atten);
 
 // Funktion zum Lesen des ADC-Werts und Umwandlung in Prozent
-float adc_read_sensor(adc_channel_t channel);
+float adc_read_sensor(adc_channel_t channel, float bidWidth);
 
 // Funktion zur Umrechnung des ADC-Werts in Prozent
-float adcToPercentage(uint32_t adcValue);
+float adcToPercentage(float adcValue, float bitWidth);
 
 // Funktion zur Bereinigung des ADC (optional)
 void adc_cleanup();
