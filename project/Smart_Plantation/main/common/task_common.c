@@ -3,7 +3,7 @@
 #include "backend/wifi-server.h"
 #include "backend/mdns_server.h"
 #include "sensors/temperature_sensor.h"
-#include "peripherals/led_rgb.h"
+#include "peripherals/led_rgb_control.h"
 #include "esp_log.h"
 
 #define QUEUE_LENGTH 1          

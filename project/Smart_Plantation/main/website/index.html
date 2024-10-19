@@ -36,22 +36,22 @@
         </div>
 
         <div class="data-container empty-data">
-            Daten werden hier angezeigt demnächst...
+            <div class="led-control">
+                <h2>LED Steuerung</h2>
+                <!-- Farbauswahl -->
+                <input type="color" id="colorPicker" value="#ffffff">
+                <div class="color-box" id="colorBox"></div>
+            
+                <form id="ledForm" hx-post="/led_control" hx-trigger="change">
+                    <input type="hidden" id="red" name="R" value="255">
+                    <input type="hidden" id="green" name="G" value="255">
+                    <input type="hidden" id="blue" name="B" value="255">
+                    <button type="submit">LED Farbe setzen</button>
+                </form>
+            </div>
         </div>
 
-        <div class="led-control">
-            <h2>LED Steuerung</h2>
-            <!-- Farbauswahl -->
-            <input type="color" id="colorPicker" value="#ffffff">
-            <div class="color-box" id="colorBox"></div>
 
-            <form id="ledForm" hx-post="/led_control" hx-trigger="change">
-                <input type="hidden" id="red" name="R" value="255">
-                <input type="hidden" id="green" name="G" value="255">
-                <input type="hidden" id="blue" name="B" value="255">
-                <button type="submit">LED Farbe setzen</button>
-            </form>
-        </div>
     </div>
 </body>
 

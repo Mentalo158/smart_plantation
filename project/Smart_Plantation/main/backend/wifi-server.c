@@ -4,7 +4,7 @@
 #include "nvs_flash.h"
 #include "sdkconfig.h"
 #include "sensors/temperature_sensor.h"
-#include "peripherals/led_rgb.h"
+#include "peripherals/led_rgb_control.h"
 #include <sys/param.h>
 
 const char *ssid = CONFIG_WIFI_SSID;

@@ -1,5 +1,5 @@
-#ifndef LED_RGH_H
-#define LED_RGH_H
+#ifndef LED_RGB_CONTROL_H
+#define LED_RGB_CONTROL_H
 
 #include <stdint.h>
 #include "driver/ledc.h"

@@ -3,7 +3,7 @@
 #include "freertos/task.h"
 #include "driver/ledc.h"
 #include "esp_err.h"
-#include "led_rgb.h"
+#include "led_rgb_control.h"
 
 void rgb_led_init(int pinRed, int pinGreen, int pinBlue)
 {
