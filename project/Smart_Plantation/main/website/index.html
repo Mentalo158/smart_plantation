@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="app.css">
     <script src="https://unpkg.com/htmx.org@1.9.2"></script>
-    <script src="app.js" defer></script> <!-- Verlinkung zur externen JavaScript-Datei -->
+    <script src="app.js" defer></script>
     <title>Smart Plantation</title>
 </head>
 
@@ -33,15 +33,17 @@
             <div id="lightDisplay" hx-get="/light" hx-trigger="load, every 1s" hx-swap="innerHTML">
                 Lichtintensität: - %
             </div>
+            
         </div>
 
-        <div class="data-container empty-data">
+        <div class="data-container">
             <div class="led-control">
-                <h2>LED Steuerung</h2>
+                LED-Steuerung
+            </div>
                 <!-- Farbauswahl -->
                 <input type="color" id="colorPicker" value="#ffffff">
                 <div class="color-box" id="colorBox"></div>
-            
+
                 <form id="ledForm" hx-post="/led_control" hx-trigger="change">
                     <input type="hidden" id="red" name="R" value="255">
                     <input type="hidden" id="green" name="G" value="255">
@@ -50,8 +52,6 @@
                 </form>
             </div>
         </div>
-
-
     </div>
 </body>
 

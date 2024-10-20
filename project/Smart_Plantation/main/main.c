@@ -25,7 +25,7 @@ void app_main()
         ESP_ERROR_CHECK(nvs_flash_erase());
         ret = nvs_flash_init();
     }
-    ESP_ERROR_CHECK(ret); 
+    ESP_ERROR_CHECK(ret);
 
     // Queue initialisieren
     init_queue();

@@ -8,7 +8,6 @@ void start_mdns(const char *hostname, const char *instance_name, const char *ser
     mdns_hostname_set(hostname);
     mdns_instance_name_set(instance_name);
 
-    // Leere TXT-Einträge, falls benötigt, können hier gesetzt werden
     mdns_txt_item_t *txt = NULL;
     size_t num_items = 0;
 

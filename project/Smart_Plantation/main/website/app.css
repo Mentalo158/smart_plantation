@@ -1,7 +1,6 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     text-align: left;
-    /* Links ausrichten */
     background-color: #dbfaff;
     color: black;
     margin: 60px;
@@ -9,7 +8,6 @@ body {
 
 .logo-container {
     text-align: center;
-    /* Logo zentrieren */
 }
 
 #temperatureDisplay,
@@ -22,76 +20,60 @@ body {
 
 .container {
     display: flex;
-    /* Flexbox verwenden für die Kästen */
     justify-content: space-between;
-    /* Gleichmäßigen Abstand zwischen den Kästen */
     width: 100%;
-    /* Breite auf 100% setzen */
 }
 
 .sensor-container,
 .data-container {
+    display: flex;
+    flex-direction: column;
+    /* Vertikale Anordnung */
+    gap: 5px;
     flex: 1;
-    /* Beide Container nehmen den gesamten verfügbaren Platz ein */
     margin: 0;
-    /* Abstand zwischen den Kästen auf 0 setzen */
     padding: 10px;
-    /* Innenabstand */
     border: 2px solid green;
-    /* Rahmenfarbe */
     border-radius: 5px;
-    /* Runde Ecken */
     background-color: #f9f9f9;
-    /* Hintergrundfarbe für die Kästen */
 }
 
 .sensor-container {
     margin-right: 10px;
-    /* Abstand rechts für den linken Kasten */
-}
-
-.empty-data {
-    /* Text im leeren Kasten zentrieren */
-    color: gray;
-    /* Textfarbe für zukünftige Daten */
 }
 
 #moistureBar {
     width: 100%;
     background-color: grey;
-    /* Hintergrundfarbe des Balkens */
     height: 30px;
     border-radius: 5px;
     overflow: hidden;
-    margin-top: 10px;
-    /* Abstand zwischen Text und Balken */
 }
 
 #moistureProgress {
-    /* Anfangsfarbe des Fortschrittsbalkens */
     height: 100%;
 }
 
 #moistureText {
     font-size: 18px;
-    /* Schriftgröße für den Text */
-    margin-bottom: 5px;
-    /* Abstand nach unten zwischen Text und Balken */
     color: black;
-    /* Textfarbe */
     font-weight: bold;
-    /* Fettdruck für den Text */
 }
 
 .divider {
     border: none;
-    /* Entfernt den Standardrand */
     height: 2px;
-    /* Höhe der Trennlinie */
     background-color: green;
-    /* Farbe der Trennlinie */
     width: 100%;
-    /* Breite auf 100% setzen */
-    margin: 20px 0;
-    /* Abstand oben und unten */
+    margin: 20px;
+}
+
+.data-container {
+    font-size: 18px;
+        color: black;
+            font-weight: bold;
+    display: flex;
+    flex-direction: column;
+    /* Vertikale Anordnung */
+    gap: 5px;
 }
