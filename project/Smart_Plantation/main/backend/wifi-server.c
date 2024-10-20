@@ -156,13 +156,12 @@ esp_err_t light_sensor_value_handler(httpd_req_t *req)
 {
     float lightPercentage = 0.0f;
 
-
     if (xQueuePeek(lightDataQueue, &lightPercentage, 0) == pdTRUE)
     {
         char response[64];
-        snprintf(response, sizeof(response), "%.2f", lightPercentage); // Prozentsatz übergeben
+        snprintf(response, sizeof(response), "Lichtintensität: %.2f", lightPercentage); // Prozentsatz übergeben
 
-        httpd_resp_set_type(req, "text/plain");          
+        httpd_resp_set_type(req, "text/plain");
         httpd_resp_send(req, response, strlen(response));
     }
     else
@@ -264,7 +263,6 @@ httpd_uri_t led_control_uri = {
     .method = HTTP_POST,
     .handler = led_control_handler,
     .user_ctx = NULL};
-
 
 void wifi_connection()
 {
