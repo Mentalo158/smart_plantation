@@ -5,6 +5,7 @@
 #include "sensors/temperature_sensor.h"
 #include "peripherals/led_rgb_control.h"
 #include "esp_log.h"
+#include "backend/sntp_client.h"
 
 #define QUEUE_LENGTH 1          
 #define ITEM_SIZE sizeof(float) 
@@ -94,7 +95,17 @@ void led_task(void *pvParameters)
             printf("LED updated: R=%d, G=%d, B=%d\n", led_data.red, led_data.green, led_data.blue);
         }
     }
-};
+}
+
+void time_sync_task(void *pvParameter)
+{
+    const TickType_t xDelay = 60000 / portTICK_PERIOD_MS; // 60 Sekunden
+    for (;;)
+    {
+        sntp_update_time(); // Aktualisiere die Zeit
+        vTaskDelay(xDelay); // Warte eine Minute
+    }
+}
 
 void webServerTask(void *pvParameters)
 {

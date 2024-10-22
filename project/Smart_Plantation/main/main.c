@@ -38,5 +38,8 @@ void app_main()
     xTaskCreatePinnedToCore(dhtTask, "DHT Sensor Task", 2048, NULL, 1, NULL, 1);             // DHT Task auf Core 1
     xTaskCreatePinnedToCore(light_sensor_task, "Light Sensor Task", 2048, NULL, 1, NULL, 1); // ADC Task auf Core 1
     xTaskCreatePinnedToCore(led_task, "LED Task", 2048, NULL, 1, NULL, 1);                   // ADC Task auf Core 1
-    xTaskCreatePinnedToCore(webServerTask, "Web Server Task", 8192, NULL, 1, NULL, 0);       // Webserver auf Core 0
+
+    xTaskCreatePinnedToCore(webServerTask, "Web Server Task", 8192, NULL, 1, NULL, 0); // Webserver auf Core 0
+    vTaskDelay(pdMS_TO_TICKS(20000));
+    xTaskCreatePinnedToCore(time_sync_task, "Time Sync Task", 2048, NULL, 1, NULL, 1);
 }

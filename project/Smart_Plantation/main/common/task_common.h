@@ -77,6 +77,8 @@ void light_sensor_task(void *pvParameters);
  */
 void led_task(void *pvParameters);
 
+void time_sync_task(void *pvParameter);
+
 /**
  * @brief Webserver und mDNS Task.
  *

@@ -6,6 +6,8 @@
 #include "sensors/temperature_sensor.h"
 #include "peripherals/led_rgb_control.h"
 #include <sys/param.h>
+#include "sntp_client.h"
+#include "backend/sntp_client.h"
 
 const char *ssid = CONFIG_WIFI_SSID;
 const char *pass = CONFIG_WIFI_PASSWORD;
@@ -210,6 +212,22 @@ esp_err_t led_control_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
+esp_err_t time_value_handler(httpd_req_t *req)
+{
+    time_t now = get_current_time();
+    struct tm timeinfo;
+    localtime_r(&now, &timeinfo);
+
+    char response[128];
+    snprintf(response, sizeof(response), "Aktuelle Zeit: %02d:%02d:%02d, Datum: %02d.%02d.%04d",
+             timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec,
+             timeinfo.tm_mday, timeinfo.tm_mon + 1, timeinfo.tm_year + 1900);
+
+    httpd_resp_set_type(req, "text/plain");
+    httpd_resp_send(req, response, strlen(response));
+    return ESP_OK;
+}
+
 httpd_uri_t http_uri = {
     .uri = "/",
     .method = HTTP_GET,
@@ -264,6 +282,12 @@ httpd_uri_t led_control_uri = {
     .handler = led_control_handler,
     .user_ctx = NULL};
 
+httpd_uri_t time_uri = {
+    .uri = "/time",
+    .method = HTTP_GET,
+    .handler = time_value_handler,
+    .user_ctx = NULL};
+
 void wifi_connection()
 {
     esp_netif_init();                    // Initialisiere das Netzwerkinterface
@@ -295,13 +319,25 @@ void wifi_connection()
     esp_wifi_set_mode(WIFI_MODE_STA); // Setze den WLAN-Modus auf Station
     esp_wifi_connect();               // Verbinde mit dem WLAN
     printf("wifi_init_softap finished. SSID:%s  password:%s", ssid, pass);
+
+    vTaskDelay(pdMS_TO_TICKS(15000));
+    // SNTP initialisieren und Zeit synchronisieren
+    sntp_inits();
+    
+    set_time_zone(); // Zeitzone setzen
+    ESP_LOGI("SNTP", "SNTP synchronization successful");
+    
+ 
+    
+    ESP_LOGE("SNTP", "SNTP synchronization failed");
+    
 }
 
 httpd_handle_t start_webserver(void)
 {
     httpd_handle_t http_server = NULL;              // Handle für den HTTP-Server
     httpd_config_t config = HTTPD_DEFAULT_CONFIG(); // Standardkonfiguration für den HTTP-Server
-
+    config.max_uri_handlers = 20;
     // Startet den HTTP-Server
     if (httpd_start(&http_server, &config) == ESP_OK)
     {
@@ -314,6 +350,10 @@ httpd_handle_t start_webserver(void)
         httpd_register_uri_handler(http_server, &temperature_uri);
         httpd_register_uri_handler(http_server, &light_uri);
         httpd_register_uri_handler(http_server, &led_control_uri);
+        if (httpd_register_uri_handler(http_server, &time_uri) != ESP_OK)
+        {
+            ESP_LOGE("WebServer", "Failed to register time URI handler");
+        }
 
         return http_server; // Gibt das Handle des gestarteten HTTP-Servers zurück
     }
