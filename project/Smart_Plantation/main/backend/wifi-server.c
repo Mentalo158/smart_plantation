@@ -44,6 +44,8 @@ extern const uint8_t favicon_ico_start[] asm("_binary_favicon_ico_start");
 extern const uint8_t favicon_ico_end[] asm("_binary_favicon_ico_end");
 extern const uint8_t htmx_js_start[] asm("_binary_htmx_min_js_start");
 extern const uint8_t htmx_js_end[] asm("_binary_htmx_min_js_end");
+extern const uint8_t logo_png_start[] asm("_binary_logo_png_start");
+extern const uint8_t logo_png_end[] asm("_binary_logo_png_end");
 
 extern QueueHandle_t moistureDataQueue;
 extern QueueHandle_t dhtDataQueue;
@@ -75,6 +77,10 @@ void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, in
         ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
         printf("Wifi got IP...\n");
         printf("IP is: " IPSTR "\n", IP2STR(&event->ip_info.ip));
+
+        sntp_inits();
+        set_time_zone();
+        //sntp_update_time();
     }
 }
 
@@ -110,6 +116,13 @@ esp_err_t htmx_handler(httpd_req_t *req)
 {
     httpd_resp_set_type(req, "application/javascript");
     httpd_resp_send(req, (const char *)htmx_js_start, htmx_js_end - htmx_js_start);
+    return ESP_OK;
+}
+
+esp_err_t logo_handler(httpd_req_t *req)
+{
+    httpd_resp_set_type(req, "image/png");
+    httpd_resp_send(req, (const char *)logo_png_start, logo_png_end - logo_png_start);
     return ESP_OK;
 }
 
@@ -258,6 +271,12 @@ httpd_uri_t htmx_uri = {
     .handler = htmx_handler,
     .user_ctx = NULL};
 
+httpd_uri_t logo_uri = {
+    .uri = "/logo.png",
+    .method = HTTP_GET,
+    .handler = logo_handler,
+    .user_ctx = NULL};
+
 httpd_uri_t adc_uri = {
     .uri = "/adc",
     .method = HTTP_GET,
@@ -320,17 +339,7 @@ void wifi_connection()
     esp_wifi_connect();               // Verbinde mit dem WLAN
     printf("wifi_init_softap finished. SSID:%s  password:%s", ssid, pass);
 
-    vTaskDelay(pdMS_TO_TICKS(15000));
-    // SNTP initialisieren und Zeit synchronisieren
-    sntp_inits();
-    
-    set_time_zone(); // Zeitzone setzen
-    ESP_LOGI("SNTP", "SNTP synchronization successful");
-    
- 
-    
-    ESP_LOGE("SNTP", "SNTP synchronization failed");
-    
+
 }
 
 httpd_handle_t start_webserver(void)
@@ -350,6 +359,7 @@ httpd_handle_t start_webserver(void)
         httpd_register_uri_handler(http_server, &temperature_uri);
         httpd_register_uri_handler(http_server, &light_uri);
         httpd_register_uri_handler(http_server, &led_control_uri);
+        httpd_register_uri_handler(http_server, &logo_uri);
         if (httpd_register_uri_handler(http_server, &time_uri) != ESP_OK)
         {
             ESP_LOGE("WebServer", "Failed to register time URI handler");

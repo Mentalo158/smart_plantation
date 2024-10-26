@@ -99,7 +99,7 @@ void led_task(void *pvParameters)
 
 void time_sync_task(void *pvParameter)
 {
-    const TickType_t xDelay = 60000 / portTICK_PERIOD_MS; // 60 Sekunden
+    const TickType_t xDelay = 1000 / portTICK_PERIOD_MS; // 60 Sekunden
     for (;;)
     {
         sntp_update_time(); // Aktualisiere die Zeit
