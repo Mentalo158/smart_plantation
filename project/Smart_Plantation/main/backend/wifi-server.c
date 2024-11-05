@@ -8,6 +8,7 @@
 #include <sys/param.h>
 #include "sntp_client.h"
 #include "backend/sntp_client.h"
+#include "common/config_storage.h"
 
 const char *ssid = CONFIG_WIFI_SSID;
 const char *pass = CONFIG_WIFI_PASSWORD;
@@ -187,44 +188,6 @@ esp_err_t light_sensor_value_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
-esp_err_t led_control_handler(httpd_req_t *req)
-{
-    char content[100];
-    size_t recv_size = MIN(req->content_len, sizeof(content) - 1);
-
-    int ret = httpd_req_recv(req, content, recv_size);
-    if (ret <= 0)
-    {
-        if (ret == HTTPD_SOCK_ERR_TIMEOUT)
-        {
-            httpd_resp_send_408(req);
-        }
-        return ESP_FAIL;
-    }
-
-    content[recv_size] = '\0';
-
-    int red = 0, green = 0, blue = 0;
-    sscanf(content, "R=%d&G=%d&B=%d", &red, &green, &blue); // Extrahieren der RGB-Werte
-
-    // Erstellen einer LED-Datenstruktur und setzen der empfangenen Werte
-    led_color_t led_data;
-    led_data.red = red;
-    led_data.green = green;
-    led_data.blue = blue;
-
-    // Sende die LED-Daten an die Queue
-    if (xQueueSend(led_queue, &led_data, pdMS_TO_TICKS(10)) != pdTRUE)
-    {
-        httpd_resp_send_500(req);
-        return ESP_FAIL;
-    }
-
-    // Erfolgreiche Antwort
-    httpd_resp_send(req, "LED updated", HTTPD_RESP_USE_STRLEN);
-    return ESP_OK;
-}
-
 esp_err_t time_value_handler(httpd_req_t *req)
 {
     time_t now = get_current_time();
@@ -239,6 +202,68 @@ esp_err_t time_value_handler(httpd_req_t *req)
     httpd_resp_set_type(req, "text/plain");
     httpd_resp_send(req, response, strlen(response));
     return ESP_OK;
+}
+
+esp_err_t config_get_handler(httpd_req_t *req)
+{
+    config_t config;
+    load_config(&config);
+
+    char response[128];
+    snprintf(response, sizeof(response),
+             "{\"temp_threshold\": %ld, \"red\": %u, \"green\": %u, \"blue\": %u}",
+             config.temp_threshold, config.red, config.green, config.blue);
+
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_send(req, response, strlen(response));
+    return ESP_OK;
+}
+
+esp_err_t config_set_handler(httpd_req_t *req)
+{
+    char content[100];
+    size_t recv_size = MIN(req->content_len, sizeof(content) - 1);
+    int ret = httpd_req_recv(req, content, recv_size);
+    if (ret <= 0)
+    {
+        if (ret == HTTPD_SOCK_ERR_TIMEOUT)
+        {
+            httpd_resp_send_408(req);
+        }
+        return ESP_FAIL;
+    }
+
+    content[recv_size] = '\0';
+
+    config_t new_config;
+    if (sscanf(content, "temp_threshold=%ld&red=%hhu&green=%hhu&blue=%hhu",
+               &new_config.temp_threshold, &new_config.red,
+               &new_config.green, &new_config.blue) == 4)
+    {
+        // Konfiguration speichern
+        save_config(&new_config);
+
+        // Farbwerte an die LED-Queue senden
+        led_color_t led_data;
+        led_data.red = new_config.red;
+        led_data.green = new_config.green;
+        led_data.blue = new_config.blue;
+
+        //TODO hier ist ein Fehler einmal anschauen
+        if (xQueueSend(led_queue, &led_data, pdMS_TO_TICKS(10)) != pdTRUE)
+        {
+            httpd_resp_send_500(req);
+            return ESP_FAIL;
+        }
+
+        httpd_resp_send(req, "Config updated", HTTPD_RESP_USE_STRLEN);
+        return ESP_OK;
+    }
+    else
+    {
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
 }
 
 httpd_uri_t http_uri = {
@@ -295,16 +320,22 @@ httpd_uri_t light_uri = {
     .handler = light_sensor_value_handler,
     .user_ctx = NULL};
 
-httpd_uri_t led_control_uri = {
-    .uri = "/led_control",
-    .method = HTTP_POST,
-    .handler = led_control_handler,
-    .user_ctx = NULL};
-
 httpd_uri_t time_uri = {
     .uri = "/time",
     .method = HTTP_GET,
     .handler = time_value_handler,
+    .user_ctx = NULL};
+
+httpd_uri_t config_get_uri = {
+    .uri = "/config",
+    .method = HTTP_GET,
+    .handler = config_get_handler,
+    .user_ctx = NULL};
+
+httpd_uri_t config_set_uri = {
+    .uri = "/config_set",
+    .method = HTTP_POST,
+    .handler = config_set_handler,
     .user_ctx = NULL};
 
 void wifi_connection()
@@ -358,8 +389,9 @@ httpd_handle_t start_webserver(void)
         httpd_register_uri_handler(http_server, &adc_uri);
         httpd_register_uri_handler(http_server, &temperature_uri);
         httpd_register_uri_handler(http_server, &light_uri);
-        httpd_register_uri_handler(http_server, &led_control_uri);
         httpd_register_uri_handler(http_server, &logo_uri);
+        httpd_register_uri_handler(http_server, &config_get_uri);
+        httpd_register_uri_handler(http_server, &config_set_uri);
         if (httpd_register_uri_handler(http_server, &time_uri) != ESP_OK)
         {
             ESP_LOGE("WebServer", "Failed to register time URI handler");

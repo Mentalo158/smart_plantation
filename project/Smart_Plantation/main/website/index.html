@@ -19,7 +19,7 @@
 
     <div class="container">
         <div class="sensor-container">
-            
+
             <div class="moisture-text" id="moistureText" hx-get="/adc" hx-trigger="load, every 1s" hx-swap="innerHTML">
                 Bodenfeuchte: - %
             </div>
@@ -45,17 +45,21 @@
             <div class="led-control">
                 LED-Steuerung
             </div>
-                <!-- Farbauswahl -->
-                <input type="color" id="colorPicker" value="#ffffff">
-                <div class="color-box" id="colorBox"></div>
 
-                <form id="ledForm" hx-post="/led_control" hx-trigger="change">
-                    <input type="hidden" id="red" name="R" value="255">
-                    <input type="hidden" id="green" name="G" value="255">
-                    <input type="hidden" id="blue" name="B" value="255">
-                    <button type="submit">LED Farbe setzen</button>
-                </form>
-            </div>
+        <label for="tempThreshold">Temperaturschwellenwert (°C):</label>
+        <input type="number" id="tempThreshold" name="temp_threshold" placeholder="z.B. 25">
+
+        <!-- Farbauswahl -->
+        <input type="color" id="colorPicker" value="#ffffff">
+        <div class="color-box" id="colorBox"></div>
+
+        <!-- Anpassung des Endpunkts und Formulars für das Senden der Konfiguration -->
+        <form id="configForm" hx-post="/config_set" hx-trigger="submit" hx-swap="none">
+            <input type="hidden" id="red" name="red" value="255">
+            <input type="hidden" id="green" name="green" value="255">
+            <input type="hidden" id="blue" name="blue" value="255">
+            <button type="submit">Konfiguration setzen</button>
+        </form>
         </div>
     </div>
 </body>

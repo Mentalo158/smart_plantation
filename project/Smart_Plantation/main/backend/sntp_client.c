@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include "esp_log.h"
 #include "esp_sntp.h"
 #include "nvs_flash.h"

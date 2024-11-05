@@ -32,9 +32,9 @@ void app_main()
 
     // WLAN-Verbindung herstellen
     wifi_connection();
-
-    // Tasks erstellen
-    xTaskCreatePinnedToCore(moisture_task, "Moisture Sensor Task", 2048, NULL, 1, NULL, 1);  // ADC Task auf Core 1
+    
+        // Tasks erstellen
+        xTaskCreatePinnedToCore(moisture_task, "Moisture Sensor Task", 2048, NULL, 1, NULL, 1); // ADC Task auf Core 1
     xTaskCreatePinnedToCore(dhtTask, "DHT Sensor Task", 2048, NULL, 1, NULL, 1);             // DHT Task auf Core 1
     xTaskCreatePinnedToCore(light_sensor_task, "Light Sensor Task", 2048, NULL, 1, NULL, 1); // ADC Task auf Core 1
     xTaskCreatePinnedToCore(led_task, "LED Task", 2048, NULL, 1, NULL, 1);                   // ADC Task auf Core 1

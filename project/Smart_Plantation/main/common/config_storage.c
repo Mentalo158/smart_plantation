@@ -76,7 +76,7 @@ void load_config(config_t *config)
 
     if (err == ESP_OK)
     {
-        printf("Config geladen: Temp = %d, RGB = (%d, %d, %d)\n",
+        printf("Config geladen: Temp = %ld, RGB = (%d, %d, %d)\n",
                config->temp_threshold, config->red, config->green, config->blue);
     }
     else

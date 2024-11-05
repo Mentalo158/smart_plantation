@@ -6,6 +6,7 @@
 #include "peripherals/led_rgb_control.h"
 #include "esp_log.h"
 #include "backend/sntp_client.h"
+#include "common/config_storage.h"
 
 #define QUEUE_LENGTH 1          
 #define ITEM_SIZE sizeof(float) 
@@ -84,6 +85,11 @@ void led_task(void *pvParameters)
 {
     led_color_t led_data;
     rgb_led_init(LEDC_OUTPUT_R_PIN, LEDC_OUTPUT_G_PIN, LEDC_OUTPUT_B_PIN);
+
+    config_t config;
+    load_config(&config);
+
+    rgb_set_color(config.red, config.green, config.blue);
 
     while (1)
     {
