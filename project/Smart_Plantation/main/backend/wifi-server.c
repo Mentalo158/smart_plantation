@@ -250,7 +250,7 @@ esp_err_t config_set_handler(httpd_req_t *req)
         led_data.blue = new_config.blue;
 
         //TODO hier ist ein Fehler einmal anschauen
-        if (xQueueSend(led_queue, &led_data, pdMS_TO_TICKS(10)) != pdTRUE)
+        if (xQueueOverwrite(led_queue, &led_data) != pdTRUE)
         {
             httpd_resp_send_500(req);
             return ESP_FAIL;
