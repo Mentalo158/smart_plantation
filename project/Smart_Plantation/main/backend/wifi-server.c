@@ -256,7 +256,7 @@ esp_err_t config_set_handler(httpd_req_t *req)
             return ESP_FAIL;
         }
 
-        httpd_resp_send(req, "Config updated", HTTPD_RESP_USE_STRLEN);
+        //httpd_resp_send(req, "Config updated", HTTPD_RESP_USE_STRLEN);
         return ESP_OK;
     }
     else
