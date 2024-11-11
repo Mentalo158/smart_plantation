@@ -36,30 +36,51 @@
                 Lichtintensität: - %
             </div>
 
+            <div id="tasmotaControl">
+                <button hx-get="/plug_switch" hx-trigger="click" hx-swap="innerHTML">
+                    Steckdose für 2 Sekunden einschalten
+                </button>
+            </div>
+
             <div id="timeDisplay" hx-get="/time" hx-trigger="load, every 1s" hx-swap="innerHTML">
                 Aktuelle Zeit: -
             </div>
         </div>
 
         <div class="data-container">
-            <div class="led-control">
-                LED-Steuerung
+            <div class="led-control">LED-Steuerung</div>
+            <label for="tempThreshold">Temperaturschwellenwert (°C):</label>
+            <input type="number" id="tempThreshold" name="temp_threshold" placeholder="z.B. 25">
+        
+            <!-- Farbauswahl -->
+            <input type="color" id="colorPicker" value="#ffffff">
+            <div class="color-box" id="colorBox"></div>
+        
+            <!-- Neue Konfigurationselemente für Zeit und Wochentage -->
+            <label for="hour">Stunde:</label>
+            <input type="number" id="hour" name="hour" min="0" max="23" placeholder="0-23">
+        
+            <label for="minute">Minute:</label>
+            <input type="number" id="minute" name="minute" min="0" max="59" placeholder="0-59">
+        
+            <label>Wochentage:</label>
+            <div id="days">
+                <label><input type="checkbox" value="1" id="sunday"> So</label>
+                <label><input type="checkbox" value="2" id="monday"> Mo</label>
+                <label><input type="checkbox" value="4" id="tuesday"> Di</label>
+                <label><input type="checkbox" value="8" id="wednesday"> Mi</label>
+                <label><input type="checkbox" value="16" id="thursday"> Do</label>
+                <label><input type="checkbox" value="32" id="friday"> Fr</label>
+                <label><input type="checkbox" value="64" id="saturday"> Sa</label>
             </div>
-
-        <label for="tempThreshold">Temperaturschwellenwert (°C):</label>
-        <input type="number" id="tempThreshold" name="temp_threshold" placeholder="z.B. 25">
-
-        <!-- Farbauswahl -->
-        <input type="color" id="colorPicker" value="#ffffff">
-        <div class="color-box" id="colorBox"></div>
-
-        <!-- Anpassung des Endpunkts und Formulars für das Senden der Konfiguration -->
-        <form id="configForm" hx-post="/config_set" hx-trigger="submit" hx-swap="none">
-            <input type="hidden" id="red" name="red" value="255">
-            <input type="hidden" id="green" name="green" value="255">
-            <input type="hidden" id="blue" name="blue" value="255">
-            <button type="submit">Konfiguration setzen</button>
-        </form>
+        
+            <!-- Formular für das Senden der Konfiguration -->
+            <form id="configForm">
+                <input type="hidden" id="red" name="red" value="255">
+                <input type="hidden" id="green" name="green" value="255">
+                <input type="hidden" id="blue" name="blue" value="255">
+                <button type="submit">Konfiguration setzen</button>
+            </form>
         </div>
     </div>
 </body>

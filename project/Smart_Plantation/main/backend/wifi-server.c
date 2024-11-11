@@ -9,10 +9,15 @@
 #include "sntp_client.h"
 #include "backend/sntp_client.h"
 #include "common/config_storage.h"
+#include "peripherals/wifi_plug.h"
+#include "esp_timer.h"
 
 const char *ssid = CONFIG_WIFI_SSID;
 const char *pass = CONFIG_WIFI_PASSWORD;
 int retry_num = 0;
+
+int64_t last_plug_activation = 0;      // Speichert den letzten Aktivierungszeitpunkt in Mikrosekunden
+const int64_t PLUG_COOLDOWN = 6000000; // 3 Sekunden in Mikrosekunden (Cooldown-Zeitraum)
 
 /**
  * @brief Eingebettete binäre Daten für verschiedene Ressourcen.
@@ -81,7 +86,7 @@ void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, in
 
         sntp_inits();
         set_time_zone();
-        //sntp_update_time();
+        // sntp_update_time();
     }
 }
 
@@ -209,10 +214,10 @@ esp_err_t config_get_handler(httpd_req_t *req)
     config_t config;
     load_config(&config);
 
-    char response[128];
+    char response[256];
     snprintf(response, sizeof(response),
-             "{\"temp_threshold\": %ld, \"red\": %u, \"green\": %u, \"blue\": %u}",
-             config.temp_threshold, config.red, config.green, config.blue);
+             "{\"temp_threshold\": %ld, \"red\": %u, \"green\": %u, \"blue\": %u, \"hour\": %u, \"minute\": %u, \"days\": %u}",
+             config.temp_threshold, config.red, config.green, config.blue, config.hour, config.minute, config.days);
 
     httpd_resp_set_type(req, "application/json");
     httpd_resp_send(req, response, strlen(response));
@@ -221,7 +226,7 @@ esp_err_t config_get_handler(httpd_req_t *req)
 
 esp_err_t config_set_handler(httpd_req_t *req)
 {
-    char content[100];
+    char content[128]; // Passen wir die Größe für die zusätzlichen Parameter an
     size_t recv_size = MIN(req->content_len, sizeof(content) - 1);
     int ret = httpd_req_recv(req, content, recv_size);
     if (ret <= 0)
@@ -236,9 +241,10 @@ esp_err_t config_set_handler(httpd_req_t *req)
     content[recv_size] = '\0';
 
     config_t new_config;
-    if (sscanf(content, "temp_threshold=%ld&red=%hhu&green=%hhu&blue=%hhu",
+    if (sscanf(content, "temp_threshold=%ld&red=%hhu&green=%hhu&blue=%hhu&hour=%hhu&minute=%hhu&days=%hhu",
                &new_config.temp_threshold, &new_config.red,
-               &new_config.green, &new_config.blue) == 4)
+               &new_config.green, &new_config.blue,
+               &new_config.hour, &new_config.minute, &new_config.days) == 7)
     {
         // Konfiguration speichern
         save_config(&new_config);
@@ -249,20 +255,50 @@ esp_err_t config_set_handler(httpd_req_t *req)
         led_data.green = new_config.green;
         led_data.blue = new_config.blue;
 
-        //TODO hier ist ein Fehler einmal anschauen
+        // Schreiben in die Queue für LED-Daten
         if (xQueueOverwrite(led_queue, &led_data) != pdTRUE)
         {
             httpd_resp_send_500(req);
             return ESP_FAIL;
         }
 
-        //httpd_resp_send(req, "Config updated", HTTPD_RESP_USE_STRLEN);
+        // Rückmeldung für erfolgreiche Konfiguration
+        httpd_resp_send(req, "Konfiguration erfolgreich aktualisiert", HTTPD_RESP_USE_STRLEN);
         return ESP_OK;
     }
     else
     {
+        // Fehlerhafte Parameter
         httpd_resp_send_500(req);
         return ESP_FAIL;
+    }
+}
+
+esp_err_t wifi_plug_switch_handler(httpd_req_t *req)
+{
+    int64_t current_time = esp_timer_get_time();
+
+    // Prüfen, ob 3 Sekunden vergangen sind
+    if (current_time - last_plug_activation >= PLUG_COOLDOWN)
+    {
+        // Wenn ja, dann die Steckdose umschalten
+        if (tasmota_toggle_power(2000) == ESP_OK) // 2000 ms = 2 Sekunden
+        {
+            last_plug_activation = current_time; // Update den letzten Aktivierungszeitpunkt
+            httpd_resp_sendstr(req, "Steckdose für 2 Sekunden eingeschaltet.");
+            return ESP_OK;
+        }
+        else
+        {
+            httpd_resp_send_500(req);
+            return ESP_FAIL;
+        }
+    }
+    else
+    {
+        // Wenn weniger als 3 Sekunden vergangen sind, gebe eine Fehlermeldung zurück
+        httpd_resp_sendstr(req, "Bitte warten, bevor Sie erneut klicken.");
+        return ESP_OK;
     }
 }
 
@@ -338,6 +374,13 @@ httpd_uri_t config_set_uri = {
     .handler = config_set_handler,
     .user_ctx = NULL};
 
+// URI-Handler für die Steckdose
+httpd_uri_t wifi_plug_switch_uri = {
+    .uri = "/plug_switch",
+    .method = HTTP_GET,
+    .handler = wifi_plug_switch_handler,
+    .user_ctx = NULL};
+
 void wifi_connection()
 {
     esp_netif_init();                    // Initialisiere das Netzwerkinterface
@@ -369,8 +412,6 @@ void wifi_connection()
     esp_wifi_set_mode(WIFI_MODE_STA); // Setze den WLAN-Modus auf Station
     esp_wifi_connect();               // Verbinde mit dem WLAN
     printf("wifi_init_softap finished. SSID:%s  password:%s", ssid, pass);
-
-
 }
 
 httpd_handle_t start_webserver(void)
@@ -392,6 +433,7 @@ httpd_handle_t start_webserver(void)
         httpd_register_uri_handler(http_server, &logo_uri);
         httpd_register_uri_handler(http_server, &config_get_uri);
         httpd_register_uri_handler(http_server, &config_set_uri);
+        httpd_register_uri_handler(http_server, &wifi_plug_switch_uri);
         if (httpd_register_uri_handler(http_server, &time_uri) != ESP_OK)
         {
             ESP_LOGE("WebServer", "Failed to register time URI handler");
