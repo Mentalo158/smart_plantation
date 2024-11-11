@@ -16,4 +16,6 @@ time_t get_current_time(void);
 // Funktion zur Einstellung der Zeitzone
 void set_time_zone();
 
+int get_current_day_of_week();
+
 #endif // SNTP_CLIENT_H

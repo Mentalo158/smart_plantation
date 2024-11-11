@@ -57,6 +57,7 @@ extern QueueHandle_t moistureDataQueue;
 extern QueueHandle_t dhtDataQueue;
 extern QueueHandle_t lightDataQueue;
 extern QueueHandle_t led_queue;
+extern QueueHandle_t config_queue;
 
 void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
 {
@@ -226,7 +227,7 @@ esp_err_t config_get_handler(httpd_req_t *req)
 
 esp_err_t config_set_handler(httpd_req_t *req)
 {
-    char content[128]; // Passen wir die Größe für die zusätzlichen Parameter an
+    char content[128];
     size_t recv_size = MIN(req->content_len, sizeof(content) - 1);
     int ret = httpd_req_recv(req, content, recv_size);
     if (ret <= 0)
@@ -240,29 +241,29 @@ esp_err_t config_set_handler(httpd_req_t *req)
 
     content[recv_size] = '\0';
 
+    // Neue Konfiguration aus der HTTP-Anfrage lesen
     config_t new_config;
     if (sscanf(content, "temp_threshold=%ld&red=%hhu&green=%hhu&blue=%hhu&hour=%hhu&minute=%hhu&days=%hhu",
-               &new_config.temp_threshold, &new_config.red,
-               &new_config.green, &new_config.blue,
-               &new_config.hour, &new_config.minute, &new_config.days) == 7)
+               &new_config.temp_threshold, &new_config.red, &new_config.green,
+               &new_config.blue, &new_config.hour, &new_config.minute, &new_config.days) == 7)
     {
-        // Konfiguration speichern
+        // Konfiguration in NVS speichern
         save_config(&new_config);
 
-        // Farbwerte an die LED-Queue senden
-        led_color_t led_data;
-        led_data.red = new_config.red;
-        led_data.green = new_config.green;
-        led_data.blue = new_config.blue;
+        // Neue Konfigurationsdaten für die Queue vorbereiten
+        config_data_t config_data;
+        config_data.hour = new_config.hour;
+        config_data.minute = new_config.minute;
+        config_data.days = new_config.days;
 
-        // Schreiben in die Queue für LED-Daten
-        if (xQueueOverwrite(led_queue, &led_data) != pdTRUE)
+        // Konfigurationsdaten in die Queue schreiben (falls sie voll ist, wird sie überschrieben)
+        if (xQueueOverwrite(config_queue, &config_data) != pdTRUE)
         {
             httpd_resp_send_500(req);
             return ESP_FAIL;
         }
 
-        // Rückmeldung für erfolgreiche Konfiguration
+        // Rückmeldung an den Webserver über erfolgreiche Aktualisierung
         httpd_resp_send(req, "Konfiguration erfolgreich aktualisiert", HTTPD_RESP_USE_STRLEN);
         return ESP_OK;
     }

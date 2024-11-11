@@ -16,4 +16,5 @@ void config_storage_init();
 void save_config(config_t *config);
 void load_config(config_t *config);
 
+
 #endif // CONFIG_STORAGE_H
