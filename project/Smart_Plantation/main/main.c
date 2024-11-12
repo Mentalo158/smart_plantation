@@ -6,14 +6,23 @@
 #include "nvs_flash.h"
 #include "backend/wifi-server.h"
 
-/**
- * @brief Hauptanwendung.
- *
- * Diese Funktion wird beim Start der Anwendung aufgerufen.
- * Sie initialisiert den Non-Volatile Storage (NVS) Flash-Speicher,
- * stellt eine WLAN-Verbindung her und erstellt die erforderlichen Tasks
- * für den ADC-Sensor und den Webserver.
- */
+// Funktion zur Überwachung des Stackverbrauchs
+void monitor_stack_usage()
+{
+    UBaseType_t sntp_stack_usage = uxTaskGetStackHighWaterMark(NULL); // Stack-Wasserstand für den aktuellen Task
+    ESP_LOGI("Stack Monitoring", "Free stack space for current task: %d bytes", sntp_stack_usage);
+
+    // Hier könnte man spezifische Stack-Messung für die Webserver-Task einfügen
+    // Wenn die Task-ID bekannt ist, können wir den Stack von webServerTask separat überprüfen
+    TaskHandle_t webserver_task_handle = xTaskGetHandle("Web Server Task"); // Hole Handle für Webserver Task
+    if (webserver_task_handle != NULL)
+    {
+        UBaseType_t webserver_stack_usage = uxTaskGetStackHighWaterMark(webserver_task_handle); // Stack-Wasserstand des Webserver Tasks
+        ESP_LOGI("Stack Monitoring", "Free stack space for Web Server Task: %d bytes", webserver_stack_usage);
+    }
+}
+
+// Hauptanwendung
 void app_main()
 {
     // Initialisiere den NVS-Flash-Speicher
@@ -37,9 +46,12 @@ void app_main()
     xTaskCreatePinnedToCore(moisture_task, "Moisture Sensor Task", 2048, NULL, 1, NULL, 1);  // ADC Task auf Core 1
     xTaskCreatePinnedToCore(dhtTask, "DHT Sensor Task", 2048, NULL, 1, NULL, 1);             // DHT Task auf Core 1
     xTaskCreatePinnedToCore(light_sensor_task, "Light Sensor Task", 2048, NULL, 1, NULL, 1); // ADC Task auf Core 1
-    xTaskCreatePinnedToCore(led_task, "LED Task", 2048, NULL, 1, NULL, 1);                   // ADC Task auf Core 1
+    xTaskCreatePinnedToCore(led_task, "LED Task", 2048, NULL, 1, NULL, 1);                   // LED Task auf Core 1
+    xTaskCreatePinnedToCore(time_sync_task, "Time Sync Task", 4096, NULL, 1, NULL, 1);
+    xTaskCreatePinnedToCore(pump_control_task, "Pump Control Task", 8192, NULL, 1, NULL, 1); // SNTP Task auf Core 1
+    xTaskCreatePinnedToCore(webServerTask, "Web Server Task", 8192, NULL, 1, NULL, 0);       // Webserver auf Core 0
 
-    xTaskCreatePinnedToCore(webServerTask, "Web Server Task", 8192, NULL, 1, NULL, 0); // Webserver auf Core 0
-    vTaskDelay(pdMS_TO_TICKS(20000));
-    xTaskCreatePinnedToCore(time_sync_task, "Time Sync Task", 2048, NULL, 1, NULL, 1);
+
+    // Überwachung des Stackverbrauchs
+    // monitor_stack_usage();
 }

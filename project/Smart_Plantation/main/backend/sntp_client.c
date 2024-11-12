@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include "esp_log.h"
 #include "esp_sntp.h"
 #include "nvs_flash.h"
@@ -39,4 +38,12 @@ void set_time_zone()
 {
     setenv("TZ", "CET-1CEST,M3.5.0/2,M10.5.0/3", 1); // CET mit Sommerzeit
     tzset();                                         // Wende die Zeitzone an
+}
+
+int get_current_day_of_week()
+{
+    time_t now = get_current_time();
+    struct tm timeinfo;
+    localtime_r(&now, &timeinfo);
+    return timeinfo.tm_wday;
 }

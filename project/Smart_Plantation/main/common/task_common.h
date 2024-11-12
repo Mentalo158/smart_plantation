@@ -25,7 +25,7 @@ extern QueueHandle_t moistureDataQueue; // Queue für ADC-Daten
 extern QueueHandle_t dhtDataQueue;      // Queue für DHT-Daten
 extern QueueHandle_t lightDataQueue;    // Queue für Lichtdaten
 extern QueueHandle_t led_queue;         // Queue für LED-Daten
-
+extern QueueHandle_t config_queue;
 /**
  * @brief Initialisiert die Queues.
  *
@@ -77,8 +77,9 @@ void light_sensor_task(void *pvParameters);
  */
 void led_task(void *pvParameters);
 
-void time_sync_task(void *pvParameter);
+void pump_control_task(void *pvParameter);
 
+void time_sync_task(void *pvParameter);
 /**
  * @brief Webserver und mDNS Task.
  *

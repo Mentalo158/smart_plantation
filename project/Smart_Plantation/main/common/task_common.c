@@ -6,6 +6,8 @@
 #include "peripherals/led_rgb_control.h"
 #include "esp_log.h"
 #include "backend/sntp_client.h"
+#include "common/config_storage.h"
+#include "peripherals/wifi_plug.h"
 
 #define QUEUE_LENGTH 1          
 #define ITEM_SIZE sizeof(float) 
@@ -15,6 +17,7 @@ QueueHandle_t moistureDataQueue;
 QueueHandle_t dhtDataQueue;
 QueueHandle_t lightDataQueue;
 QueueHandle_t led_queue;
+QueueHandle_t config_queue;
 
 void moisture_task(void *pvParameters)
 {
@@ -85,6 +88,11 @@ void led_task(void *pvParameters)
     led_color_t led_data;
     rgb_led_init(LEDC_OUTPUT_R_PIN, LEDC_OUTPUT_G_PIN, LEDC_OUTPUT_B_PIN);
 
+    config_t config;
+    load_config(&config);
+
+    rgb_set_color(config.red, config.green, config.blue);
+
     while (1)
     {
         // Warte, bis neue RGB-Daten in die Warteschlange eingehen
@@ -99,11 +107,64 @@ void led_task(void *pvParameters)
 
 void time_sync_task(void *pvParameter)
 {
-    const TickType_t xDelay = 60000 / portTICK_PERIOD_MS; // 60 Sekunden
+    const TickType_t xDelay = 1000 / portTICK_PERIOD_MS; // 60 Sekunden
     for (;;)
     {
         sntp_update_time(); // Aktualisiere die Zeit
         vTaskDelay(xDelay); // Warte eine Minute
+    }
+}
+
+void pump_control_task(void *pvParameter)
+{
+    config_data_t config_data;
+    bool pump_triggered_today = false;
+
+    // Initialkonfiguration aus NVS laden
+    config_t initial_config;
+    load_config(&initial_config);
+    config_data.hour = initial_config.hour;
+    config_data.minute = initial_config.minute;
+    config_data.days = initial_config.days;
+
+    while (1)
+    {
+        //TODO FIX 
+        // Warten, bis neue Konfigurationsdaten in die Queue geschrieben werden
+        if (xQueueReceive(config_queue, &config_data, pdMS_TO_TICKS(100)))
+        {
+            ESP_LOGI("PUMP_TASK", "Neue Konfiguration empfangen: %02d:%02d, Tage = 0x%02X",
+                     config_data.hour, config_data.minute, config_data.days);
+
+            pump_triggered_today = false; // Täglichen Trigger zurücksetzen bei neuer Konfiguration
+        }
+        ESP_LOGI("PUMP_TASK", "Neue Konfiguration empfangen: %02d:%02d, Tage = 0x%02X",
+                 config_data.hour, config_data.minute, config_data.days);
+
+        // Aktuelle Zeit überprüfen und Bedingungen ausführen
+        time_t now = get_current_time();
+        struct tm timeinfo;
+        localtime_r(&now, &timeinfo);
+
+        // Prüfen, ob die Pumpe zur eingestellten Zeit aktiviert werden soll
+        if ((timeinfo.tm_hour >= config_data.hour) && !pump_triggered_today)
+        {
+            int current_day = get_current_day_of_week();
+            if ((config_data.days & (1 << current_day)) && (timeinfo.tm_min >= config_data.minute))
+            {
+                ESP_LOGI("PUMP_TASK", "Pumpe aktivieren: Geplante Zeit erreicht.");
+                tasmota_toggle_power(2000); // Beispielwert für die Dauer
+                pump_triggered_today = true;
+            }
+        }
+
+        // Täglichen Auslöser um Mitternacht zurücksetzen
+        if (timeinfo.tm_hour == 0 && timeinfo.tm_min == 0)
+        {
+            pump_triggered_today = false;
+        }
+
+        vTaskDelay(60000 / portTICK_PERIOD_MS); // Wartezeit für eine Minute, um die Schleife nicht zu überlasten
     }
 }
 
@@ -150,5 +211,11 @@ void init_queue()
     if (led_queue == NULL)
     {
         ESP_LOGE("Task_Common", "LED Queue creation failed!");
+    }
+
+    config_queue = xQueueCreate(1, sizeof(config_data_t)); // Maximale Länge 1, um nur die letzte Konfiguration zu halten
+    if (config_queue == NULL)
+    {
+        ESP_LOGE("Task_Common", "Configuration Queue creation failed!");
     }
 }

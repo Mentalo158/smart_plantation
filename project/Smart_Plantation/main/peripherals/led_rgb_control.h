@@ -26,7 +26,7 @@ typedef struct
  *
  * Diese Funktion konfiguriert den LEDC-Timer und die Kanäle für die RGB-LED.
  */
-void rgb_led_init();
+void rgb_led_init(int pinRed, int pinGreen, int pinBlue);
 
 /**
  * @brief Setzt die Farbe der RGB-LED.
