@@ -24,10 +24,6 @@
                 Bodenfeuchte: - %
             </div>
 
-            <div id="moistureBar">
-                <div id="moistureProgress" style="width: 0%;"></div>
-            </div>
-
             <div id="temperatureDisplay" hx-get="/temperature" hx-trigger="load, every 1s" hx-swap="innerHTML">
                 Temperatur: -
             </div>
@@ -47,7 +43,7 @@
             </div>
         </div>
 
-        <div class="data-container">
+        <div class="peripherals-container">
             <div class="led-control">LED-Steuerung</div>
             <label for="tempThreshold">Temperaturschwellenwert (°C):</label>
             <input type="number" id="tempThreshold" name="temp_threshold" placeholder="z.B. 25">

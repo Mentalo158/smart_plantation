@@ -1,79 +1,143 @@
+/* Allgemeine Stile */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    text-align: left;
-    background-color: #dbfaff;
-    color: black;
-    margin: 60px;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f9;
+    color: #333;
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
+/* Logo */
 .logo-container {
     text-align: center;
+    margin-top: 20px;
 }
 
-#temperatureDisplay,
-#humidityDisplay {
-    font-size: 18px;
-    margin-top: 10px;
-    color: black;
+/* Divider */
+.divider {
+    width: 80%;
+    border: 1px solid #ddd;
+    margin: 20px 0;
+}
+
+/* Hauptcontainer */
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    width: 90%;
+    max-width: 1200px;
+}
+
+/* Sensorcontainer */
+.sensor-container {
+    flex: 1;
+    min-width: 300px;
+    background: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 20px;
+    margin: 10px;
+}
+
+.sensor-container div {
+    margin-bottom: 15px;
+    font-size: 1.2em;
+}
+
+.sensor-container button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.sensor-container button:hover {
+    background-color: #0056b3;
+}
+
+/* Datencontainer */
+.peripherals-container {
+    flex: 1;
+    min-width: 300px;
+    background: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 20px;
+    margin: 10px;
+}
+
+.peripherals-container .led-control {
+    font-size: 1.5em;
+    margin-bottom: 15px;
     font-weight: bold;
 }
 
-.container {
-    display: flex;
-    justify-content: space-between;
+/* Eingabefelder */
+.peripherals-container label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 1em;
+}
+
+.peripherals-container input[type="number"],
+.peripherals-container input[type="color"] {
     width: 100%;
-}
-
-.sensor-container,
-.data-container {
-    display: flex;
-    flex-direction: column;
-    /* Vertikale Anordnung */
-    gap: 5px;
-    flex: 1;
-    margin: 0;
     padding: 10px;
-    border: 2px solid green;
-    border-radius: 5px;
-    background-color: #f9f9f9;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em;
 }
 
-.sensor-container {
+.peripherals-container input[type="checkbox"] {
     margin-right: 10px;
 }
 
-#moistureBar {
-    width: 100%;
-    background-color: grey;
-    height: 30px;
-    border-radius: 5px;
-    overflow: hidden;
+#days label {
+    display: inline-block;
+    margin-right: 10px;
+    font-size: 0.9em;
 }
 
-#moistureProgress {
-    height: 100%;
+/* Farbbox */
+.color-box {
+    width: 50px;
+    height: 50px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #ffffff;
 }
 
-#moistureText {
-    font-size: 18px;
-    color: black;
-    font-weight: bold;
-}
-
-.divider {
+/* Formular-Button */
+#configForm button {
+    background-color: #28a745;
+    color: #fff;
     border: none;
-    height: 2px;
-    background-color: green;
-    width: 100%;
-    margin: 20px;
+    border-radius: 4px;
+    padding: 10px 20px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.3s;
 }
 
-.data-container {
-    font-size: 18px;
-        color: black;
-            font-weight: bold;
-    display: flex;
-    flex-direction: column;
-    /* Vertikale Anordnung */
-    gap: 5px;
+#configForm button:hover {
+    background-color: #218838;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+        align-items: center;
+    }
 }
