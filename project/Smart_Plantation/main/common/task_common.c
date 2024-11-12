@@ -131,13 +131,15 @@ void pump_control_task(void *pvParameter)
     {
         //TODO FIX 
         // Warten, bis neue Konfigurationsdaten in die Queue geschrieben werden
-        if (xQueueReceive(config_queue, &config_data, portMAX_DELAY) == pdTRUE)
+        if (xQueueReceive(config_queue, &config_data, pdMS_TO_TICKS(100)))
         {
             ESP_LOGI("PUMP_TASK", "Neue Konfiguration empfangen: %02d:%02d, Tage = 0x%02X",
                      config_data.hour, config_data.minute, config_data.days);
 
             pump_triggered_today = false; // Täglichen Trigger zurücksetzen bei neuer Konfiguration
         }
+        ESP_LOGI("PUMP_TASK", "Neue Konfiguration empfangen: %02d:%02d, Tage = 0x%02X",
+                 config_data.hour, config_data.minute, config_data.days);
 
         // Aktuelle Zeit überprüfen und Bedingungen ausführen
         time_t now = get_current_time();

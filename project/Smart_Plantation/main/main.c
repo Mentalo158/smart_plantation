@@ -48,7 +48,7 @@ void app_main()
     xTaskCreatePinnedToCore(light_sensor_task, "Light Sensor Task", 2048, NULL, 1, NULL, 1); // ADC Task auf Core 1
     xTaskCreatePinnedToCore(led_task, "LED Task", 2048, NULL, 1, NULL, 1);                   // LED Task auf Core 1
     xTaskCreatePinnedToCore(time_sync_task, "Time Sync Task", 4096, NULL, 1, NULL, 1);
-    xTaskCreatePinnedToCore(pump_control_task, "Pump Control Task", 4096, NULL, 1, NULL, 1); // SNTP Task auf Core 1
+    xTaskCreatePinnedToCore(pump_control_task, "Pump Control Task", 8192, NULL, 1, NULL, 1); // SNTP Task auf Core 1
     xTaskCreatePinnedToCore(webServerTask, "Web Server Task", 8192, NULL, 1, NULL, 0);       // Webserver auf Core 0
 
 
