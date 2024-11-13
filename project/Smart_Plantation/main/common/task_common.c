@@ -9,8 +9,8 @@
 #include "common/config_storage.h"
 #include "peripherals/wifi_plug.h"
 
-#define QUEUE_LENGTH 1          
-#define ITEM_SIZE sizeof(float) 
+#define QUEUE_LENGTH 1
+#define ITEM_SIZE sizeof(float)
 
 // Globales Handle für die ADC-Daten-Queue und DHT-Daten-Queue
 QueueHandle_t moistureDataQueue;
@@ -21,22 +21,22 @@ QueueHandle_t config_queue;
 
 void moisture_task(void *pvParameters)
 {
-    adc_init(MOISTURE_CHANNEL, ADC_WIDTH_BIT_12, MOISTURE_ATTEN); 
+    adc_init(MOISTURE_CHANNEL, ADC_WIDTH_BIT_12, MOISTURE_ATTEN);
 
     while (1)
     {
-        float moisturePercentage = adc_read_sensor(MOISTURE_CHANNEL, MOISTURE_ADC_MAX_VALUE); 
+        float moisturePercentage = adc_read_sensor(MOISTURE_CHANNEL, MOISTURE_ADC_MAX_VALUE);
 
         if (xQueueOverwrite(moistureDataQueue, &moisturePercentage) != pdPASS)
         {
-            ESP_LOGE("ADC_Sensor", "Failed to overwrite ADC value in queue"); 
+            ESP_LOGE("ADC_Sensor", "Failed to overwrite ADC value in queue");
         }
         else
         {
-            ESP_LOGI("ADC_Sensor", "ADC Value: %.2f%%", moisturePercentage); 
+            ESP_LOGI("ADC_Sensor", "ADC Value: %.2f%%", moisturePercentage);
         }
 
-        vTaskDelay(pdMS_TO_TICKS(1000)); 
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
 
@@ -49,7 +49,7 @@ void dhtTask(void *pvParameters)
     while (1)
     {
         // Lese die Daten vom DHT-Sensor
-        dht_data_t dhtData = read_temperature_sensor(DHT_GPIO_PIN); 
+        dht_data_t dhtData = read_temperature_sensor(DHT_GPIO_PIN);
 
         // Schreibe die Temperatur und Feuchtigkeit in die Queue
         if (xQueueOverwrite(dhtDataQueue, &dhtData) != pdPASS)
@@ -67,7 +67,7 @@ void light_sensor_task(void *pvParameters)
 
     while (1)
     {
-        float lightPercentage = adc_read_sensor(LIGHT_CHANNEL, LIGHT_ADC_MAX_VALUE);
+        float lightPercentage = 100.0f - adc_read_sensor(LIGHT_CHANNEL, LIGHT_ADC_MAX_VALUE);
 
         // Versuche, den ADC-Wert in die Queue zu schreiben
         if (xQueueOverwrite(lightDataQueue, &lightPercentage) != pdPASS)
@@ -129,8 +129,8 @@ void pump_control_task(void *pvParameter)
 
     while (1)
     {
-        //TODO FIX 
-        // Warten, bis neue Konfigurationsdaten in die Queue geschrieben werden
+        // TODO FIX
+        //  Warten, bis neue Konfigurationsdaten in die Queue geschrieben werden
         if (xQueueReceive(config_queue, &config_data, pdMS_TO_TICKS(100)))
         {
             ESP_LOGI("PUMP_TASK", "Neue Konfiguration empfangen: %02d:%02d, Tage = 0x%02X",
@@ -174,16 +174,15 @@ void webServerTask(void *pvParameters)
     httpd_handle_t server = start_webserver();
     if (server == NULL)
     {
-        ESP_LOGE("WebServer", "Failed to start web server"); 
-        vTaskDelete(NULL);                                   
+        ESP_LOGE("WebServer", "Failed to start web server");
+        vTaskDelete(NULL);
     }
 
-    
     start_mdns(MDNS_NAME, INSTANCE_NAME, SERVICE_TYPE, PROTOCOL, PORT);
 
     while (1)
     {
-        vTaskDelay(pdMS_TO_TICKS(1000)); 
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
 
@@ -195,10 +194,10 @@ void init_queue()
         ESP_LOGE("Task_Common", "ADC Queue creation failed!");
     }
 
-    dhtDataQueue = xQueueCreate(QUEUE_LENGTH, sizeof(dht_data_t)); 
+    dhtDataQueue = xQueueCreate(QUEUE_LENGTH, sizeof(dht_data_t));
     if (dhtDataQueue == NULL)
     {
-        ESP_LOGE("Task_Common", "DHT Queue creation failed!"); 
+        ESP_LOGE("Task_Common", "DHT Queue creation failed!");
     }
 
     lightDataQueue = xQueueCreate(QUEUE_LENGTH, ITEM_SIZE);

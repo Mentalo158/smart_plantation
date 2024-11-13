@@ -12,6 +12,9 @@
 #include "peripherals/wifi_plug.h"
 #include "esp_timer.h"
 
+//TODO Handler aufteilen in peri_handlers und sensor_handlers
+//TODO COOLDOWN für die Steckdose anpassen
+
 const char *ssid = CONFIG_WIFI_SSID;
 const char *pass = CONFIG_WIFI_PASSWORD;
 int retry_num = 0;
@@ -46,8 +49,6 @@ extern const uint8_t app_css_start[] asm("_binary_app_css_start");
 extern const uint8_t app_css_end[] asm("_binary_app_css_end");
 extern const uint8_t app_js_start[] asm("_binary_app_js_start");
 extern const uint8_t app_js_end[] asm("_binary_app_js_end");
-extern const uint8_t favicon_ico_start[] asm("_binary_favicon_ico_start");
-extern const uint8_t favicon_ico_end[] asm("_binary_favicon_ico_end");
 extern const uint8_t htmx_js_start[] asm("_binary_htmx_min_js_start");
 extern const uint8_t htmx_js_end[] asm("_binary_htmx_min_js_end");
 extern const uint8_t logo_png_start[] asm("_binary_logo_png_start");
@@ -109,13 +110,6 @@ esp_err_t js_handler(httpd_req_t *req)
 {
     httpd_resp_set_type(req, "application/javascript");
     httpd_resp_send(req, (const char *)app_js_start, app_js_end - app_js_start);
-    return ESP_OK;
-}
-
-esp_err_t favicon_handler(httpd_req_t *req)
-{
-    httpd_resp_set_type(req, "image/x-icon");
-    httpd_resp_send(req, (const char *)favicon_ico_start, favicon_ico_end - favicon_ico_start);
     return ESP_OK;
 }
 
@@ -191,22 +185,6 @@ esp_err_t light_sensor_value_handler(httpd_req_t *req)
         httpd_resp_send_404(req);
     }
 
-    return ESP_OK;
-}
-
-esp_err_t time_value_handler(httpd_req_t *req)
-{
-    time_t now = get_current_time();
-    struct tm timeinfo;
-    localtime_r(&now, &timeinfo);
-
-    char response[128];
-    snprintf(response, sizeof(response), "Aktuelle Zeit: %02d:%02d:%02d, Datum: %02d.%02d.%04d",
-             timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec,
-             timeinfo.tm_mday, timeinfo.tm_mon + 1, timeinfo.tm_year + 1900);
-
-    httpd_resp_set_type(req, "text/plain");
-    httpd_resp_send(req, response, strlen(response));
     return ESP_OK;
 }
 
@@ -336,12 +314,6 @@ httpd_uri_t js_uri = {
     .handler = js_handler,
     .user_ctx = NULL};
 
-httpd_uri_t favicon_uri = {
-    .uri = "/favicon.ico",
-    .method = HTTP_GET,
-    .handler = favicon_handler,
-    .user_ctx = NULL};
-
 httpd_uri_t htmx_uri = {
     .uri = "/htmx.min.js",
     .method = HTTP_GET,
@@ -370,12 +342,6 @@ httpd_uri_t light_uri = {
     .uri = "/light",
     .method = HTTP_GET,
     .handler = light_sensor_value_handler,
-    .user_ctx = NULL};
-
-httpd_uri_t time_uri = {
-    .uri = "/time",
-    .method = HTTP_GET,
-    .handler = time_value_handler,
     .user_ctx = NULL};
 
 httpd_uri_t config_get_uri = {
@@ -442,7 +408,6 @@ httpd_handle_t start_webserver(void)
         httpd_register_uri_handler(http_server, &http_uri);
         httpd_register_uri_handler(http_server, &css_uri);
         httpd_register_uri_handler(http_server, &js_uri);
-        httpd_register_uri_handler(http_server, &favicon_uri);
         httpd_register_uri_handler(http_server, &adc_uri);
         httpd_register_uri_handler(http_server, &temperature_uri);
         httpd_register_uri_handler(http_server, &light_uri);
@@ -450,10 +415,6 @@ httpd_handle_t start_webserver(void)
         httpd_register_uri_handler(http_server, &config_get_uri);
         httpd_register_uri_handler(http_server, &config_set_uri);
         httpd_register_uri_handler(http_server, &wifi_plug_switch_uri);
-        if (httpd_register_uri_handler(http_server, &time_uri) != ESP_OK)
-        {
-            ESP_LOGE("WebServer", "Failed to register time URI handler");
-        }
 
         return http_server; // Gibt das Handle des gestarteten HTTP-Servers zurück
     }

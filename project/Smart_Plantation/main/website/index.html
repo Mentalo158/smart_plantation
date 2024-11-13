@@ -19,7 +19,7 @@
 
     <div class="container">
         <div class="sensor-container">
-
+            <div class="sensor-data">Sensor-Daten</div>
             <div class="moisture-text" id="moistureText" hx-get="/adc" hx-trigger="load, every 1s" hx-swap="innerHTML">
                 Bodenfeuchte: - %
             </div>
@@ -37,38 +37,65 @@
                     Steckdose für 2 Sekunden einschalten
                 </button>
             </div>
-
-            <div id="timeDisplay" hx-get="/time" hx-trigger="load, every 1s" hx-swap="innerHTML">
-                Aktuelle Zeit: -
-            </div>
         </div>
 
         <div class="peripherals-container">
-            <div class="led-control">LED-Steuerung</div>
+            <div class="config">Konfiguration</div>
             <label for="tempThreshold">Temperaturschwellenwert (°C):</label>
             <input type="number" id="tempThreshold" name="temp_threshold" placeholder="z.B. 25">
         
             <!-- Farbauswahl -->
+            <label for="color">LED Farbe auswählen</label>
             <input type="color" id="colorPicker" value="#ffffff">
-            <div class="color-box" id="colorBox"></div>
         
-            <!-- Neue Konfigurationselemente für Zeit und Wochentage -->
-            <label for="hour">Stunde:</label>
-            <input type="number" id="hour" name="hour" min="0" max="23" placeholder="0-23">
-        
-            <label for="minute">Minute:</label>
-            <input type="number" id="minute" name="minute" min="0" max="59" placeholder="0-59">
+            <!-- Kombinierte Zeit-Eingabe -->
+            <label for="time">Uhrzeit:</label>
+            <input type="time" id="time" name="time">
+
+            <!-- Versteckte Felder für Stunden und Minuten -->
+            <input type="hidden" id="hour" name="hour">
+            <input type="hidden" id="minute" name="minute">
+
         
             <label>Wochentage:</label>
             <div id="days">
-                <label><input type="checkbox" value="1" id="sunday"> So</label>
-                <label><input type="checkbox" value="2" id="monday"> Mo</label>
-                <label><input type="checkbox" value="4" id="tuesday"> Di</label>
-                <label><input type="checkbox" value="8" id="wednesday"> Mi</label>
-                <label><input type="checkbox" value="16" id="thursday"> Do</label>
-                <label><input type="checkbox" value="32" id="friday"> Fr</label>
-                <label><input type="checkbox" value="64" id="saturday"> Sa</label>
+                <label for="sunday">
+                    So
+                    <input type="checkbox" value="1" id="sunday" class="switch">
+                    <span class="slider"></span>
+                </label>
+                <label for="monday">
+                    Mo
+                    <input type="checkbox" value="2" id="monday" class="switch">
+                    <span class="slider"></span>
+                </label>
+                <label for="tuesday">
+                    Di
+                    <input type="checkbox" value="4" id="tuesday" class="switch">
+                    <span class="slider"></span>
+                </label>
+                <label for="wednesday">
+                    Mi
+                    <input type="checkbox" value="8" id="wednesday" class="switch">
+                    <span class="slider"></span>
+                </label>
+                <label for="thursday">
+                    Do
+                    <input type="checkbox" value="16" id="thursday" class="switch">
+                    <span class="slider"></span>
+                </label>
+                <label for="friday">
+                    Fr
+                    <input type="checkbox" value="32" id="friday" class="switch">
+                    <span class="slider"></span>
+                </label>
+                <label for="saturday">
+                    Sa
+                    <input type="checkbox" value="64" id="saturday" class="switch">
+                    <span class="slider"></span>
+                </label>
             </div>
+
         
             <!-- Formular für das Senden der Konfiguration -->
             <form id="configForm">

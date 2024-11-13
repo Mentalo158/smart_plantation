@@ -1,0 +1,6 @@
+header 1024 length
+max uri length 1024
+flash size 4MB
+wifi pw		
+wifi ssid 	
+cpu frequency 240 MHz

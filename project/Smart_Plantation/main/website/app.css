@@ -3,8 +3,7 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f4f4f9;
-    color: #333;
+    background-color: #e3f2fd; /* Helles Blau als Hintergrundfarbe */
     line-height: 1.6;
     display: flex;
     flex-direction: column;
@@ -16,11 +15,17 @@ body {
     text-align: center;
     margin-top: 20px;
 }
+.logo-container img {
+    width: 450px;
+    /* Breite anpassen */
+    height: auto;
+    /* Höhe automatisch anpassen, um das Seitenverhältnis zu bewahren */
+}
 
 /* Divider */
 .divider {
     width: 80%;
-    border: 1px solid #ddd;
+    border: 1px solid #90caf9; /* Blauer Divider */
     margin: 20px 0;
 }
 
@@ -29,12 +34,16 @@ body {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-around;
-    width: 90%;
-    max-width: 1200px;
+    width: 80%;
 }
 
 /* Sensorcontainer */
 .sensor-container {
+    display: flex;
+    /* Flexbox aktivieren */
+    flex-direction: column;
+    gap: 15px;
+    /* Zentrieren der Elemente (optional) */
     flex: 1;
     min-width: 300px;
     background: #ffffff;
@@ -44,13 +53,15 @@ body {
     margin: 10px;
 }
 
+/* Flexbox-Eigenschaften für die divs im Sensorcontainer */
 .sensor-container div {
-    margin-bottom: 15px;
-    font-size: 1.2em;
+    font-size: 20px;
+    width: 100%;
 }
 
+/* Button im Sensorcontainer */
 .sensor-container button {
-    background-color: #007bff;
+    background-color: #0288d1;
     color: #fff;
     border: none;
     border-radius: 4px;
@@ -61,11 +72,14 @@ body {
 }
 
 .sensor-container button:hover {
-    background-color: #0056b3;
+    background-color: #0277bd;
 }
 
-/* Datencontainer */
+/* Peripherals Container - Column Layout */
 .peripherals-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
     flex: 1;
     min-width: 300px;
     background: #ffffff;
@@ -73,6 +87,14 @@ body {
     border-radius: 8px;
     padding: 20px;
     margin: 10px;
+    gap: 15px;
+}
+
+.peripherals-container label,
+.peripherals-container input[type="number"],
+.peripherals-container input[type="color"],
+#configForm button {
+    align-self: stretch;
 }
 
 .peripherals-container .led-control {
@@ -82,45 +104,99 @@ body {
 }
 
 /* Eingabefelder */
-.peripherals-container label {
-    display: block;
-    margin-bottom: 5px;
+.peripherals-container input[type="number"] {
+    width: 80%;
+    padding: 10px;
+    border: 1px solid grey;
+    border-radius: 4px;
     font-size: 1em;
 }
 
-.peripherals-container input[type="number"],
+/* Eingabefeld für Farben */
 .peripherals-container input[type="color"] {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 1em;
+    border: 1px solid grey;
+    width: 60px;
+    height: 35px;
 }
 
 .peripherals-container input[type="checkbox"] {
     margin-right: 10px;
 }
 
-#days label {
-    display: inline-block;
-    margin-right: 10px;
-    font-size: 0.9em;
+/* Wochentage mit vertikalem Schalter */
+#days {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 15px;
+    justify-content: center; /* Zentriert die Schalter */
 }
 
-/* Farbbox */
-.color-box {
-    width: 50px;
-    height: 50px;
-    margin: 10px 0;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background-color: #ffffff;
+/* Label für Wochentage */
+#days label {
+    font-size: 1em;
+    display: flex;
+    align-items: center; /* Text und Schalter nebeneinander */
+}
+
+/* Text der Wochentage */
+#days label span {
+    margin-right: 10px; /* Abstand zwischen Text und Schalter */
+}
+
+/* Switch (unsichtbar, aber interaktiv) */
+.switch {
+    opacity: 0;
+    position: relative;
+    width: 20px; /* Breite des Schalters */
+    height: 40px; /* Höhe des Schalters */
+    z-index: -1;
+}
+
+/* Slider (visuelle Darstellung des Schalters) */
+.slider {
+    position: absolute;
+    display: block;
+    width: 20px; /* Breite des Schalters */
+    height: 50px; /* Höhe des Schalters, vertikal */
+    background-color: #90caf9; /* Blau */
+    border-radius: 25px;
+    transition: 0.4s;
+    cursor: pointer;
+    margin-left: 25px;
+}
+
+/* Der kleine Kreis, der den Schalter darstellt */
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 15px;
+    width: 15px;
+    border-radius: 50%;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 5px;
+    background-color: white;
+    transition: 0.4s;
+}
+
+/* Wenn der Schalter aktiv ist */
+.switch:checked + .slider {
+    background-color: #0288d1; /* Helleres Blau wenn aktiv */
+}
+
+.switch:checked + .slider:before {
+    transform: translateX(-50%) translateY(-35px); /* Schaltet den Kreis nach oben */
+}
+
+/* Zusätzliche Stile für das Layout */
+.switch:focus + .slider {
+    box-shadow: 0 0 1px #0288d1;
 }
 
 /* Formular-Button */
 #configForm button {
-    background-color: #28a745;
+    background-color: #0288d1; /* Helleres Blau für den Formular-Button */
     color: #fff;
     border: none;
     border-radius: 4px;
@@ -131,7 +207,7 @@ body {
 }
 
 #configForm button:hover {
-    background-color: #218838;
+    background-color: #0277bd; /* Dunkleres Blau bei Hover */
 }
 
 /* Responsive Design */

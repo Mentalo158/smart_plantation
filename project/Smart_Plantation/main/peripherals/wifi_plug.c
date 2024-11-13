@@ -7,6 +7,7 @@
 #include "esp_log.h"
 
 const char *TAG = "wifi_plug"; // Definiert den TAG für dieses Modul
+const char *wifiPlugIP = CONFIG_WIFI_PLUG_IP;
 
 static esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 {
@@ -53,7 +54,7 @@ esp_err_t tasmota_toggle_power(uint32_t duration_ms)
 {
     // Steckdose einschalten
     char url_on[64];
-    snprintf(url_on, sizeof(url_on), "http://%s:%d/cm?cmnd=Power%%20On", TASMOTA_IP, TASMOTA_PORT);
+    snprintf(url_on, sizeof(url_on), "http://%s:%d/cm?cmnd=Power%%20On", wifiPlugIP, TASMOTA_PORT);
 
     esp_http_client_config_t config_on = {
         .url = url_on,
@@ -79,7 +80,7 @@ esp_err_t tasmota_toggle_power(uint32_t duration_ms)
 
     // Steckdose ausschalten
     char url_off[64];
-    snprintf(url_off, sizeof(url_off), "http://%s:%d/cm?cmnd=Power%%20Off", TASMOTA_IP, TASMOTA_PORT);
+    snprintf(url_off, sizeof(url_off), "http://%s:%d/cm?cmnd=Power%%20Off", wifiPlugIP, TASMOTA_PORT);
 
     esp_http_client_config_t config_off = {
         .url = url_off,

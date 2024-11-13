@@ -12,4 +12,9 @@ config WIFI_PASSWORD
     help
         Enter the WiFi password for the SSID.
 
+config WIFI_PLUG_IP
+    string "WiFI Plug IP"
+    help
+        Enter the IP adresse of your wifi plug.
+
 endmenu
