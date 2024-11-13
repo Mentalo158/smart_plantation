@@ -276,7 +276,7 @@ esp_err_t wifi_plug_switch_handler(httpd_req_t *req)
     if (current_time - last_plug_activation >= PLUG_COOLDOWN)
     {
         // Wenn ja, dann die Steckdose umschalten
-        if (tasmota_toggle_power(2000) == ESP_OK) // 2000 ms = 2 Sekunden
+        if (tasmota_toggle_power(4000) == ESP_OK) // 2000 ms = 2 Sekunden
         {
             last_plug_activation = current_time; // Update den letzten Aktivierungszeitpunkt
             httpd_resp_sendstr(req, "Steckdose für 2 Sekunden eingeschaltet.");

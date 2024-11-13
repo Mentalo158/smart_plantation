@@ -127,6 +127,8 @@ void pump_control_task(void *pvParameter)
     config_data.minute = initial_config.minute;
     config_data.days = initial_config.days;
 
+    // TODO Bediengung einfügen falls die task fehlschlägt prüfen
+    // TODO TASMATO status anzeigen http://<IP-Adresse>/cm?cmnd=Power
     while (1)
     {
         // TODO FIX
