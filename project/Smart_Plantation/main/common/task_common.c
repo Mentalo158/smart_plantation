@@ -4,10 +4,12 @@
 #include "backend/mdns_server.h"
 #include "sensors/temperature_sensor.h"
 #include "peripherals/led_rgb_control.h"
+#include "peripherals/wifi_plug.h"
+#include "peripherals/fan_control.h"
 #include "esp_log.h"
 #include "backend/sntp_client.h"
 #include "common/config_storage.h"
-#include "peripherals/wifi_plug.h"
+
 
 #define QUEUE_LENGTH 1
 #define ITEM_SIZE sizeof(float)
@@ -168,6 +170,27 @@ void pump_control_task(void *pvParameter)
 
         vTaskDelay(60000 / portTICK_PERIOD_MS); // Wartezeit für eine Minute, um die Schleife nicht zu überlasten
     }
+}
+
+// Definiere die Task-Funktion, die den Lüfter steuert
+void fan_control_task(void *pvParameters)
+{
+    fan_init(GPIO_NUM_12, GPIO_NUM_0);
+    // Lüfter auf maximale Geschwindigkeit setzen (255 ist der maximale Wert)
+    fan_set_speed(LEDC_FAN_DUTY_MAX);
+
+    // Ausgabe zur Bestätigung
+    printf("Lüfter läuft mit maximaler Geschwindigkeit.\n");
+
+    // Simuliere eine Dauer, die der Lüfter mit maximaler Geschwindigkeit laufen soll
+    vTaskDelay(pdMS_TO_TICKS(5000)); // Der Lüfter läuft für 5 Sekunden
+
+    // Lüfter auf 0 setzen (aus)
+    fan_set_speed(0);
+    printf("Lüfter gestoppt.\n");
+
+    // Beende die Task nach dem Ausführen
+    vTaskDelete(NULL);
 }
 
 void webServerTask(void *pvParameters)

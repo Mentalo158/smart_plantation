@@ -79,6 +79,8 @@ void led_task(void *pvParameters);
 
 void pump_control_task(void *pvParameter);
 
+void fan_control_task(void *pvParameters);
+
 void time_sync_task(void *pvParameter);
 /**
  * @brief Webserver und mDNS Task.
