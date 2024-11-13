@@ -12,11 +12,11 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("blue").value = config.blue;
             const hexColor = rgbToHex(config.red, config.green, config.blue);
             document.getElementById("colorPicker").value = hexColor;
-            document.getElementById("colorBox").style.backgroundColor = hexColor;
 
             // Setze Stunde und Minute
-            document.getElementById("hour").value = config.hour;
-            document.getElementById("minute").value = config.minute;
+            document.getElementById("hour").value = config.hour || 0;
+            document.getElementById("minute").value = config.minute || 0;
+            updateTimeField(config.hour, config.minute);
 
             // Setze die Wochentage-Checkboxen
             const daysCheckboxes = document.querySelectorAll("#days input[type=checkbox]");
@@ -47,14 +47,30 @@ function hexToRgb(hex) {
 document.getElementById('colorPicker').addEventListener('input', function () {
     const selectedColor = colorPicker.value;
     const rgb = hexToRgb(selectedColor);
+    
+    // Setze RGB-Werte in die jeweiligen Eingabefelder
     document.getElementById('red').value = rgb.r;
     document.getElementById('green').value = rgb.g;
     document.getElementById('blue').value = rgb.b;
-    document.getElementById('colorBox').style.backgroundColor = selectedColor;
+});
+
+// Aktualisiert das 'time'-Eingabefeld basierend auf Stunden und Minuten
+function updateTimeField(hour, minute) {
+    const timeField = document.getElementById("time");
+    const formattedHour = String(hour).padStart(2, "0");
+    const formattedMinute = String(minute).padStart(2, "0");
+    timeField.value = `${formattedHour}:${formattedMinute}`;
+}
+
+// Event-Listener für Änderungen im 'time'-Eingabefeld
+document.getElementById("time").addEventListener("input", function () {
+    const [hour, minute] = this.value.split(":").map(Number);
+    document.getElementById("hour").value = hour;
+    document.getElementById("minute").value = minute;
 });
 
 // POST-Request für das Konfigurationsformular
-document.getElementById("configForm").addEventListener("submit", function(event) {
+document.getElementById("configForm").addEventListener("submit", function (event) {
     event.preventDefault();
 
     // Abrufen von Schwellenwert, Farbe und Zeitkonfigurationen
@@ -82,26 +98,10 @@ document.getElementById("configForm").addEventListener("submit", function(event)
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: data
     })
-    .then(response => response.text())
-    .then(result => {
-        console.log("Antwort vom Server:", result);
-        alert(result); // Rückmeldung an den Benutzer
-    })
-    .catch(error => console.error("Fehler beim Senden der Konfiguration:", error));
+        .then(response => response.text())
+        .then(result => {
+            console.log("Antwort vom Server:", result);
+            alert(result); // Rückmeldung an den Benutzer
+        })
+        .catch(error => console.error("Fehler beim Senden der Konfiguration:", error));
 });
-
-document.addEventListener("htmx:afterSwap", (event) => {
-    if (event.target.id === "moistureText") {
-        const moistureText = event.target.innerText; // Lese den Text für die Bodenfeuchte
-        const moistureValue = parseFloat(moistureText.match(/[\d\.]+/)[0]); // Extrahiere den Feuchtigkeitswert
-
-        // Update progress bar width and color
-        const moistureProgress = document.getElementById("moistureProgress");
-        moistureProgress.style.width = `${moistureValue}%`;
-
-        // Change color from brown to blue
-        const brownToBlueRatio = moistureValue / 100; // Adjust based on your scale
-        moistureProgress.style.backgroundColor = `rgb(${165 * (1 - brownToBlueRatio)}, 44, ${255 * brownToBlueRatio})`;
-    }
-});
-

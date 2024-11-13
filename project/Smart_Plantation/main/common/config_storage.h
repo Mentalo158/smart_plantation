@@ -12,7 +12,6 @@ typedef struct
     uint8_t days;   // Bitmaske für Wochentage
 } config_t;
 
-void config_storage_init();
 void save_config(config_t *config);
 void load_config(config_t *config);
 

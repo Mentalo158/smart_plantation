@@ -7,19 +7,6 @@
 #define CONFIG_NAMESPACE "storage" // NVS-Speicherbereich für Konfigurationsdaten
 #define CONFIG_KEY "config_data"   // Schlüssel zum Speichern der Konfigurationsdaten
 
-void config_storage_init()
-{
-
-    esp_err_t ret = nvs_flash_init();
-
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
-    {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ret = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK(ret);
-}
-
 void save_config(config_t *config)
 {
     nvs_handle_t nvs_handle;
