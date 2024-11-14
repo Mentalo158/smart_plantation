@@ -1,5 +1,6 @@
 ## IDF Component Manager Manifest File
 dependencies:
+  espressif/bh1750: "^1.0.3"
   zorxx/dht: "^1.0.1"
   espressif/mdns: "^1.4.0"
   ## Required IDF version

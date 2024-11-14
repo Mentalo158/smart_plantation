@@ -8,7 +8,7 @@
 #define LEDC_CHANNEL_FAN LEDC_CHANNEL_3
 #define LEDC_FAN_DUTY_RES LEDC_TIMER_8_BIT // 8 Bit Auflösung für den Lüfter
 #define LEDC_FAN_DUTY_MAX 255              // Maximaler Duty-Cycle (100%)
-#define LEDC_FAN_FREQUENCY 30           // 25 kHz für den Lüfter
+#define LEDC_FAN_FREQUENCY 25000           // 25 kHz für den Lüfter
 
 /**
  * @brief Initialisiert die Lüftersteuerung und den Tachometer.
