@@ -172,24 +172,39 @@ void pump_control_task(void *pvParameter)
     }
 }
 
-// Definiere die Task-Funktion, die den Lüfter steuert
 void fan_control_task(void *pvParameters)
 {
-    fan_init(GPIO_NUM_12, GPIO_NUM_0);
-    // Lüfter auf maximale Geschwindigkeit setzen (255 ist der maximale Wert)
-    fan_set_speed(0);
+    int fan_pwm_pin = GPIO_NUM_12;     // PWM-Pin für die Lüftergeschwindigkeit
+    int fan_tach_pin = GPIO_NUM_18;     // Tachometer-Pin des Lüfters
+    int fan_control_pin = GPIO_NUM_0; // Steuer-Pin für den Transistor
 
-    // Ausgabe zur Bestätigung
-    printf("Lüfter läuft mit maximaler Geschwindigkeit.\n");
+    // Initialisiere den Lüfter mit den Pins
+    fan_init(fan_pwm_pin, fan_control_pin, fan_tach_pin);
 
-    // Simuliere eine Dauer, die der Lüfter mit maximaler Geschwindigkeit laufen soll
-    vTaskDelay(pdMS_TO_TICKS(5000)); // Der Lüfter läuft für 5 Sekunden
+    // Schalte den Lüfter ein und setze ihn auf maximale Geschwindigkeit (255)
+    printf("Schalte Lüfter ein.\n");
+    fan_on(fan_control_pin, 255);
 
-    // Lüfter auf 0 setzen (aus)
-    fan_set_speed(0);
-    printf("Lüfter gestoppt.\n");
+    // Lasse den Lüfter für 5 Sekunden laufen
+    vTaskDelay(pdMS_TO_TICKS(5000));
 
-    // Beende die Task nach dem Ausführen
+    // Reduziere die Lüftergeschwindigkeit auf 50% (128)
+    printf("Reduziere Lüftergeschwindigkeit auf 50%%.\n");
+    fan_set_speed(128);
+
+    // Lasse den Lüfter für weitere 5 Sekunden laufen
+    vTaskDelay(pdMS_TO_TICKS(5000));
+
+    // RPM auslesen (hier gehen wir von 2 Impulsen pro Umdrehung aus, falls das beim Lüfter zutrifft)
+    uint32_t rpm = fan_get_speed_rpm(2);
+    printf("Aktuelle Lüfterdrehzahl: %lu RPM\n", rpm); // Benutze %lu für uint32_t
+
+    // Schalte den Lüfter vollständig aus
+    printf("Schalte Lüfter aus.\n");
+    fan_off(fan_control_pin);
+
+    // Beende die Task nach dem Test
+    printf("Fan-Control-Test abgeschlossen.\n");
     vTaskDelete(NULL);
 }
 
