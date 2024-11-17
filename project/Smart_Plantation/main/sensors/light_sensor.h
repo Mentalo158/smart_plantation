@@ -2,9 +2,7 @@
 #define LIGHT_SENSOR_H
 
 #include "esp_err.h"
-#include "driver/i2c.h"
-#include "BH1750.h"
-
+#include "bh1750.h"
 // Struktur, um den aktuellen Lichtstatus zu speichern
 typedef struct
 {
@@ -18,4 +16,8 @@ esp_err_t bh1750_init();
 // Funktion zum Abrufen des aktuellen Lichtstatus
 LightState get_light_state();
 
+// Funktion zur Freigabe des BH1750 Sensors
+void bh1750_deinit();
+
 #endif // LIGHT_SENSOR_H
+

@@ -177,7 +177,7 @@ void fan_control_task(void *pvParameters)
 {
     fan_init(GPIO_NUM_12, GPIO_NUM_0);
     // Lüfter auf maximale Geschwindigkeit setzen (255 ist der maximale Wert)
-    fan_set_speed(LEDC_FAN_DUTY_MAX);
+    fan_set_speed(0);
 
     // Ausgabe zur Bestätigung
     printf("Lüfter läuft mit maximaler Geschwindigkeit.\n");

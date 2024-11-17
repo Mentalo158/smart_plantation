@@ -19,7 +19,7 @@ void fan_init(int pinFan, int tachPin)
 {
     // Lüfter-Initialisierung (PWM)
     ledc_timer_config_t ledc_timer = {
-        .speed_mode = LEDC_LOW_SPEED_MODE, // Verwende High-Speed Mode
+        .speed_mode = LEDC_HIGH_SPEED_MODE, // Verwende High-Speed Mode
         .timer_num = LEDC_TIMER_1,
         .duty_resolution = LEDC_FAN_DUTY_RES,
         .freq_hz = LEDC_FAN_FREQUENCY,
@@ -31,7 +31,7 @@ void fan_init(int pinFan, int tachPin)
     }
 
     ledc_channel_config_t ledc_channel_fan = {
-        .speed_mode = LEDC_LOW_SPEED_MODE, // Verwende High-Speed Mode
+        .speed_mode = LEDC_HIGH_SPEED_MODE, // Verwende High-Speed Mode
         .channel = LEDC_CHANNEL_FAN,
         .timer_sel = LEDC_TIMER_1,
         .intr_type = LEDC_INTR_DISABLE,

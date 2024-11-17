@@ -1,5 +1,6 @@
 #include "Adafruit_Stemma_soil_sensor.h"
 #include "esp_log.h"
+#include "moisture_sensor.h"
 
 #define TAG "Soil_Sensor"
 
