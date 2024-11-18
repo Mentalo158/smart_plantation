@@ -174,8 +174,8 @@ void pump_control_task(void *pvParameter)
 
 void fan_control_task(void *pvParameters)
 {
-    int fan_pwm_pin = GPIO_NUM_12;     // PWM-Pin für die Lüftergeschwindigkeit
-    int fan_tach_pin = GPIO_NUM_18;     // Tachometer-Pin des Lüfters
+    int fan_pwm_pin = GPIO_NUM_12;    // PWM-Pin für die Lüftergeschwindigkeit
+    int fan_tach_pin = GPIO_NUM_18;   // Tachometer-Pin des Lüfters
     int fan_control_pin = GPIO_NUM_0; // Steuer-Pin für den Transistor
 
     // Initialisiere den Lüfter mit den Pins
