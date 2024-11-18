@@ -81,7 +81,7 @@ void light_sensor_task(void *pvParameters)
             ESP_LOGI("Light_Sensor", "Light Sensor Value: %.2f", lightPercentage);
         }
 
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(5000));
     }
 }
 
