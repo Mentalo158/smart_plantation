@@ -1,32 +1,42 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // Abrufen und Setzen der gespeicherten Konfigurationswerte beim Laden der Seite
     fetch("/config")
         .then(response => response.json())
         .then(config => {
-            // Setze den Temperaturschwellenwert
-            document.getElementById("tempThreshold").value = config.temp_threshold;
+            // Debugging: Logge die geladene Konfiguration
+            console.log("Config geladen:", config);
 
-            // Setze die RGB-Werte und Farb-Picker
-            document.getElementById("red").value = config.red;
-            document.getElementById("green").value = config.green;
-            document.getElementById("blue").value = config.blue;
+            if (config.days === undefined) config.days = 0; // Default für Days
+
+            // Temperatur und RGB-Werte laden
+            document.getElementById("tempThreshold").value = config.temp_threshold || 0;
+            document.getElementById("red").value = config.red || 255;
+            document.getElementById("green").value = config.green || 255;
+            document.getElementById("blue").value = config.blue || 255;
+
+            // RGB in Hex umwandeln
             const hexColor = rgbToHex(config.red, config.green, config.blue);
             document.getElementById("colorPicker").value = hexColor;
 
-            // Setze Stunde und Minute
-            document.getElementById("hour").value = config.hour || 0;
-            document.getElementById("minute").value = config.minute || 0;
-            updateTimeField(config.hour, config.minute);
+            const dayIds = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+            dayIds.forEach((day, index) => {
+                // Uhrzeit für den jeweiligen Wochentag setzen
+                const hour = config.times[index].hour || 0; // Hole die Stunde aus times
+                const minute = config.times[index].minute || 0; // Hole die Minute aus times
+                const formattedTime = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+                document.getElementById(`time-${day}`).value = formattedTime;
 
-            // Setze die Wochentage-Checkboxen
-            const daysCheckboxes = document.querySelectorAll("#days input[type=checkbox]");
-            daysCheckboxes.forEach((checkbox) => {
-                if (config.days & parseInt(checkbox.value)) {
-                    checkbox.checked = true;
+                // Wochentage anhand der Bitmaske auswählen
+                const checkbox = document.getElementById(day);
+                if (config.days & (1 << index)) {
+                    checkbox.checked = true; // Setze Checkbox, wenn der Tag aktiv ist
+                } else {
+                    checkbox.checked = false; // Andernfalls Checkbox deaktivieren
                 }
             });
         })
-        .catch(error => console.error("Fehler beim Laden der Konfiguration:", error));
+        .catch(error => {
+            console.error("Fehler beim Laden der Konfiguration:", error);
+        });
 });
 
 // Umwandlung von RGB zu Hex
@@ -47,26 +57,11 @@ function hexToRgb(hex) {
 document.getElementById('colorPicker').addEventListener('input', function () {
     const selectedColor = colorPicker.value;
     const rgb = hexToRgb(selectedColor);
-    
+
     // Setze RGB-Werte in die jeweiligen Eingabefelder
     document.getElementById('red').value = rgb.r;
     document.getElementById('green').value = rgb.g;
     document.getElementById('blue').value = rgb.b;
-});
-
-// Aktualisiert das 'time'-Eingabefeld basierend auf Stunden und Minuten
-function updateTimeField(hour, minute) {
-    const timeField = document.getElementById("time");
-    const formattedHour = String(hour).padStart(2, "0");
-    const formattedMinute = String(minute).padStart(2, "0");
-    timeField.value = `${formattedHour}:${formattedMinute}`;
-}
-
-// Event-Listener für Änderungen im 'time'-Eingabefeld
-document.getElementById("time").addEventListener("input", function () {
-    const [hour, minute] = this.value.split(":").map(Number);
-    document.getElementById("hour").value = hour;
-    document.getElementById("minute").value = minute;
 });
 
 // POST-Request für das Konfigurationsformular
@@ -78,25 +73,42 @@ document.getElementById("configForm").addEventListener("submit", function (event
     const red = document.getElementById("red").value;
     const green = document.getElementById("green").value;
     const blue = document.getElementById("blue").value;
-    const hour = document.getElementById("hour").value || 0;
-    const minute = document.getElementById("minute").value || 0;
 
-    // Wochentage als eine Zahl kodieren
+    // Erfasse Stunden und Minuten für jeden Wochentag
+    const dayIds = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+    const hours = [];
+    const minutes = [];
+    dayIds.forEach((day) => {
+        const [hour, minute] = document.getElementById(`time-${day}`).value.split(":").map(Number);
+        hours.push(hour);
+        minutes.push(minute || 0); // Wenn Minute `null` oder `undefined`, auf 0 setzen
+    });
+
+    // Wochentage als eine Zahl kodieren (Bitmaske)
     let days = 0;
-    document.querySelectorAll("#days input[type=checkbox]").forEach((checkbox) => {
+    dayIds.forEach((day, index) => {
+        const checkbox = document.getElementById(day);
         if (checkbox.checked) {
-            days |= parseInt(checkbox.value);
+            days |= (1 << index);  // Setze das entsprechende Bit für den Wochentag
         }
     });
 
-    // Formulardaten erstellen
-    const data = `temp_threshold=${encodeURIComponent(tempThreshold)}&red=${encodeURIComponent(red)}&green=${encodeURIComponent(green)}&blue=${encodeURIComponent(blue)}&hour=${encodeURIComponent(hour)}&minute=${encodeURIComponent(minute)}&days=${encodeURIComponent(days)}`;
+    // Erstelle das JSON-Objekt
+    const data = {
+        temp_threshold: tempThreshold,
+        red: red,
+        green: green,
+        blue: blue,
+        hours: hours,
+        minutes: minutes,
+        days: days
+    };
 
-    // POST-Request an den config_set_handler
+    // POST-Request an den config_set_handler senden
     fetch("/config_set", {
         method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: data
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
     })
         .then(response => response.text())
         .then(result => {

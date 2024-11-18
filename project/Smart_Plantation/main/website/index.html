@@ -43,61 +43,91 @@
             <div class="config">Konfiguration</div>
             <label for="tempThreshold">Temperaturschwellenwert (°C):</label>
             <input type="number" id="tempThreshold" name="temp_threshold" placeholder="z.B. 25">
-        
+
             <!-- Farbauswahl -->
             <label for="color">LED Farbe auswählen</label>
             <input type="color" id="colorPicker" value="#ffffff">
-        
-            <!-- Kombinierte Zeit-Eingabe -->
-            <label for="time">Uhrzeit:</label>
-            <input type="time" id="time" name="time">
 
-            <!-- Versteckte Felder für Stunden und Minuten -->
-            <input type="hidden" id="hour" name="hour">
-            <input type="hidden" id="minute" name="minute">
-
-        
-            <label>Wochentage:</label>
+            <label>Wochentage und Uhrzeiten:</label>
             <div id="days">
+                <!-- Sonntag -->
                 <label for="sunday">
                     So
                     <input type="checkbox" value="1" id="sunday" class="switch">
                     <span class="slider"></span>
+                    <div class="time-inputs">
+                        <label for="time-sunday">Uhrzeit:</label>
+                        <input type="time" id="time-sunday" name="time">
+                    </div>
                 </label>
+
+                <!-- Montag -->
                 <label for="monday">
                     Mo
                     <input type="checkbox" value="2" id="monday" class="switch">
                     <span class="slider"></span>
+                    <div class="time-inputs">
+                        <label for="time-monday">Uhrzeit:</label>
+                        <input type="time" id="time-monday" name="time">
+                    </div>
                 </label>
+
+                <!-- Dienstag -->
                 <label for="tuesday">
                     Di
                     <input type="checkbox" value="4" id="tuesday" class="switch">
                     <span class="slider"></span>
+                    <div class="time-inputs">
+                        <label for="time-tuesday">Uhrzeit:</label>
+                        <input type="time" id="time-tuesday" name="time">
+                    </div>
                 </label>
+
+                <!-- Mittwoch -->
                 <label for="wednesday">
                     Mi
                     <input type="checkbox" value="8" id="wednesday" class="switch">
                     <span class="slider"></span>
+                    <div class="time-inputs">
+                        <label for="time-wednesday">Uhrzeit:</label>
+                        <input type="time" id="time-wednesday" name="time">
+                    </div>
                 </label>
+
+                <!-- Donnerstag -->
                 <label for="thursday">
                     Do
                     <input type="checkbox" value="16" id="thursday" class="switch">
                     <span class="slider"></span>
+                    <div class="time-inputs">
+                        <label for="time-thursday">Uhrzeit:</label>
+                        <input type="time" id="time-thursday" name="time">
+                    </div>
                 </label>
+
+                <!-- Freitag -->
                 <label for="friday">
                     Fr
                     <input type="checkbox" value="32" id="friday" class="switch">
                     <span class="slider"></span>
+                    <div class="time-inputs">
+                        <label for="time-friday">Uhrzeit:</label>
+                        <input type="time" id="time-friday" name="time">
+                    </div>
                 </label>
+
+                <!-- Samstag -->
                 <label for="saturday">
                     Sa
                     <input type="checkbox" value="64" id="saturday" class="switch">
                     <span class="slider"></span>
+                    <div class="time-inputs">
+                        <label for="time-saturday">Uhrzeit:</label>
+                        <input type="time" id="time-saturday" name="time">
+                    </div>
                 </label>
             </div>
 
-        
-            <!-- Formular für das Senden der Konfiguration -->
             <form id="configForm">
                 <input type="hidden" id="red" name="red" value="255">
                 <input type="hidden" id="green" name="green" value="255">

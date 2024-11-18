@@ -11,6 +11,10 @@
 #include "common/config_storage.h"
 #include "peripherals/wifi_plug.h"
 #include "esp_timer.h"
+#include "esp_http_server.h"
+#include "string.h"
+#include "stdlib.h"
+#include "cJSON.h"
 
 //TODO Handler aufteilen in peri_handlers und sensor_handlers
 //TODO COOLDOWN für die Steckdose anpassen
@@ -59,6 +63,85 @@ extern QueueHandle_t dhtDataQueue;
 extern QueueHandle_t lightDataQueue;
 extern QueueHandle_t led_queue;
 extern QueueHandle_t config_queue;
+
+// Hilfsfunktion zum Extrahieren eines Parameters aus den POST-Daten
+static int extract_param_value(const char *data, const char *param_name, void *param_value, size_t value_size)
+{
+    char *start = strstr(data, param_name);
+    if (!start)
+    {
+        return ESP_FAIL; // Parameter nicht gefunden
+    }
+
+    start += strlen(param_name); // Springe nach dem Parameter-Namen
+    if (*start == '=')
+    {
+        start++; // Springe nach dem '='
+    }
+
+    // Je nach Typ des Parameters den Wert extrahieren
+    if (strchr(param_name, 'h')) // Stunden oder Minuten
+    {
+        char *end = strchr(start, '&');
+        if (!end)
+            end = strchr(start, '\0'); // Ende des Parameters finden
+        size_t len = end - start;
+        char *value = malloc(len + 1);
+        if (!value)
+            return ESP_FAIL;
+
+        strncpy(value, start, len);
+        value[len] = '\0';
+
+        char *token = strtok(value, ",");
+        int i = 0;
+        while (token && i < MAX_TIMES)
+        {
+            ((int *)param_value)[i] = atoi(token); // Stunden/Minuten-Wert in Array speichern
+            token = strtok(NULL, ",");
+            i++;
+        }
+
+        free(value);
+        return ESP_OK;
+    }
+    else if (strchr(param_name, 't') || strchr(param_name, 'r') || strchr(param_name, 'g') || strchr(param_name, 'b') || strchr(param_name, 'd')) // Andere Parameter
+    {
+        int *param_int = (int *)param_value;
+        *param_int = atoi(start); // Ganzzahligen Wert extrahieren
+        return ESP_OK;
+    }
+    return ESP_FAIL;
+}
+
+// Funktion zum Decodieren der URL-codierten POST-Daten
+void url_decode(char *str)
+{
+    char *pstr = str;
+    char *pbuf = str;
+    while (*pstr)
+    {
+        if (*pstr == '%')
+        {
+            // Decode URL Encoded Characters (%XX)
+            char hex[3] = {pstr[1], pstr[2], '\0'};
+            *pbuf = (char)strtol(hex, NULL, 16);
+            pstr += 3;
+        }
+        else if (*pstr == '+')
+        {
+            // Decoding plus to space
+            *pbuf = ' ';
+            pstr++;
+        }
+        else
+        {
+            *pbuf = *pstr++;
+        }
+        pbuf++;
+    }
+    *pbuf = '\0'; // Null-terminate the decoded string
+}
 
 void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
 {
@@ -191,21 +274,39 @@ esp_err_t light_sensor_value_handler(httpd_req_t *req)
 esp_err_t config_get_handler(httpd_req_t *req)
 {
     config_t config;
-    load_config(&config);
+    load_config(&config); // Lade die Konfiguration
 
-    char response[256];
-    snprintf(response, sizeof(response),
-             "{\"temp_threshold\": %ld, \"red\": %u, \"green\": %u, \"blue\": %u, \"hour\": %u, \"minute\": %u, \"days\": %u}",
-             config.temp_threshold, config.red, config.green, config.blue, config.hour, config.minute, config.days);
+    // Erstelle die JSON-Antwort
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddNumberToObject(root, "temp_threshold", config.temp_threshold);
+    cJSON_AddNumberToObject(root, "red", config.red);
+    cJSON_AddNumberToObject(root, "green", config.green);
+    cJSON_AddNumberToObject(root, "blue", config.blue);
+    cJSON_AddNumberToObject(root, "days", config.days);
 
-    httpd_resp_set_type(req, "application/json");
-    httpd_resp_send(req, response, strlen(response));
+    cJSON *times = cJSON_CreateArray();
+    for (int i = 0; i < MAX_TIMES; i++)
+    {
+        cJSON *time_obj = cJSON_CreateObject();
+        cJSON_AddNumberToObject(time_obj, "hour", config.hours[i]);
+        cJSON_AddNumberToObject(time_obj, "minute", config.minutes[i]);
+        cJSON_AddItemToArray(times, time_obj);
+    }
+    cJSON_AddItemToObject(root, "times", times);
+
+    // Sende die JSON-Antwort
+    char *json_response = cJSON_PrintUnformatted(root);
+    httpd_resp_send(req, json_response, strlen(json_response));
+
+    cJSON_Delete(root); // Speicher freigeben
+    free(json_response);
+
     return ESP_OK;
 }
 
 esp_err_t config_set_handler(httpd_req_t *req)
 {
-    char content[128];
+    char content[512];
     size_t recv_size = MIN(req->content_len, sizeof(content) - 1);
     int ret = httpd_req_recv(req, content, recv_size);
     if (ret <= 0)
@@ -219,53 +320,78 @@ esp_err_t config_set_handler(httpd_req_t *req)
 
     content[recv_size] = '\0';
 
-    // Neue Konfiguration aus der HTTP-Anfrage lesen
-    config_t new_config;
-    if (sscanf(content, "temp_threshold=%ld&red=%hhu&green=%hhu&blue=%hhu&hour=%hhu&minute=%hhu&days=%hhu",
-               &new_config.temp_threshold, &new_config.red, &new_config.green,
-               &new_config.blue, &new_config.hour, &new_config.minute, &new_config.days) == 7)
+    // Log die empfangenen Daten
+    ESP_LOGI("CONFIG_HANDLER", "Empfangene POST-Daten: %s", content);
+
+    // Parse das JSON
+    cJSON *json = cJSON_Parse(content);
+    if (json == NULL)
     {
-        // Konfiguration in NVS speichern
-        save_config(&new_config);
-
-        // Neue Konfigurationsdaten für die Queue vorbereiten
-        config_data_t config_data;
-        config_data.hour = new_config.hour;
-        config_data.minute = new_config.minute;
-        config_data.days = new_config.days;
-        
-        // Konfigurationsdaten in die Queue schreiben (falls sie voll ist, wird sie überschrieben)
-        if (xQueueOverwrite(config_queue, &config_data) != pdTRUE)
-        {
-            ESP_LOGE("CONFIG_HANDLER", "Fehler beim Überschreiben in config_queue");
-            httpd_resp_send_500(req);
-            return ESP_FAIL;
-        }
-
-        // LED-Werte in die LED-Queue schreiben
-        led_color_t led_data;
-        led_data.red = new_config.red;
-        led_data.green = new_config.green;
-        led_data.blue = new_config.blue;
-
-        // Sende die LED-Daten an die Queue
-        if (xQueueSend(led_queue, &led_data, pdMS_TO_TICKS(10)) != pdTRUE)
-        {
-            printf("fehler beim senden in die led_queue");
-            httpd_resp_send_500(req);
-            return ESP_FAIL;
-        }
-
-        // Rückmeldung an den Webserver über erfolgreiche Aktualisierung
-        httpd_resp_send(req, "Konfiguration erfolgreich aktualisiert", HTTPD_RESP_USE_STRLEN);
-        return ESP_OK;
-    }
-    else
-    {
-        // Fehlerhafte Parameter
+        ESP_LOGE("CONFIG_HANDLER", "Fehler beim Parsen des JSON.");
         httpd_resp_send_500(req);
         return ESP_FAIL;
     }
+
+    config_t new_config = {0};
+
+    // Extrahiere die Parameter aus dem JSON
+    cJSON *temp_threshold = cJSON_GetObjectItemCaseSensitive(json, "temp_threshold");
+    cJSON *red = cJSON_GetObjectItemCaseSensitive(json, "red");
+    cJSON *green = cJSON_GetObjectItemCaseSensitive(json, "green");
+    cJSON *blue = cJSON_GetObjectItemCaseSensitive(json, "blue");
+    cJSON *days = cJSON_GetObjectItemCaseSensitive(json, "days");
+    cJSON *hours = cJSON_GetObjectItemCaseSensitive(json, "hours");
+    cJSON *minutes = cJSON_GetObjectItemCaseSensitive(json, "minutes");
+
+    // Überprüfen und Zuweisen der Werte
+    if (cJSON_IsString(temp_threshold) && temp_threshold->valuestring)
+        new_config.temp_threshold = atoi(temp_threshold->valuestring); // Umwandlung von String zu Integer
+    if (cJSON_IsString(red) && red->valuestring)
+        new_config.red = atoi(red->valuestring); // Umwandlung von String zu Integer
+    if (cJSON_IsString(green) && green->valuestring)
+        new_config.green = atoi(green->valuestring); // Umwandlung von String zu Integer
+    if (cJSON_IsString(blue) && blue->valuestring)
+        new_config.blue = atoi(blue->valuestring); // Umwandlung von String zu Integer
+    if (cJSON_IsNumber(days))
+        new_config.days = days->valueint;
+
+    // Extrahiere Stunden und Minuten
+    if (cJSON_IsArray(hours) && cJSON_IsArray(minutes))
+    {
+        int i = 0;
+        cJSON *hour_item = NULL;
+        cJSON *minute_item = NULL;
+        cJSON_ArrayForEach(hour_item, hours)
+        {
+            if (i < MAX_TIMES && cJSON_IsNumber(hour_item))
+                new_config.hours[i] = hour_item->valueint;
+            i++;
+        }
+
+        i = 0;
+        cJSON_ArrayForEach(minute_item, minutes)
+        {
+            // Falls der Minuten-Wert null ist, setzen wir ihn auf 0
+            if (i < MAX_TIMES && (minute_item == NULL || cJSON_IsNull(minute_item)))
+                new_config.minutes[i] = 0; // Standardwert für Minuten
+            else if (i < MAX_TIMES && cJSON_IsNumber(minute_item))
+                new_config.minutes[i] = minute_item->valueint;
+            i++;
+        }
+    }
+
+    
+
+    // Konfiguration in NVS speichern
+    save_config(&new_config);
+
+    // Rückmeldung an den Webserver
+    httpd_resp_send(req, "Konfiguration erfolgreich aktualisiert", HTTPD_RESP_USE_STRLEN);
+
+    // JSON-Objekt freigeben
+    cJSON_Delete(json);
+
+    return ESP_OK;
 }
 
 esp_err_t wifi_plug_switch_handler(httpd_req_t *req)

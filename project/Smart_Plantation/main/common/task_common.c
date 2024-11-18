@@ -125,8 +125,8 @@ void pump_control_task(void *pvParameter)
     // Initialkonfiguration aus NVS laden
     config_t initial_config;
     load_config(&initial_config);
-    config_data.hour = initial_config.hour;
-    config_data.minute = initial_config.minute;
+    config_data.hour = initial_config.hours;
+    config_data.minute = initial_config.minutes;
     config_data.days = initial_config.days;
 
     // TODO Bediengung einfügen falls die task fehlschlägt prüfen
