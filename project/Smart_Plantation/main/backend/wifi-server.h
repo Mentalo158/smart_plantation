@@ -49,16 +49,6 @@ esp_err_t css_handler(httpd_req_t *req);
 esp_err_t js_handler(httpd_req_t *req);
 
 /**
- * @brief Handler für Favicon-Anfragen.
- *
- * Diese Funktion verarbeitet HTTP-Anfragen für das Favicon.
- *
- * @param req Pointer auf die HTTP-Anfrage.
- * @return ESP_OK bei Erfolg.
- */
-esp_err_t favicon_handler(httpd_req_t *req);
-
-/**
  * @brief Handler für HTMX-JavaScript-Anfragen.
  *
  * Diese Funktion verarbeitet HTTP-Anfragen für die HTMX-Bibliothek.
