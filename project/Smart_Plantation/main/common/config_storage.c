@@ -4,8 +4,8 @@
 #include "nvs.h"
 #include "config_storage.h"
 
-#define CONFIG_NAMESPACE "storage" // NVS-Speicherbereich für Konfigurationsdaten
-#define CONFIG_KEY "config_data"   // Schlüssel zum Speichern der Konfigurationsdaten
+#define CONFIG_NAMESPACE "storageses" // NVS-Speicherbereich für Konfigurationsdaten
+#define CONFIG_KEY "config_data"      // Schlüssel zum Speichern der Konfigurationsdaten
 
 void save_config(config_t *config)
 {
@@ -77,5 +77,3 @@ void load_config(config_t *config)
 
     nvs_close(nvs_handle);
 }
-
-
