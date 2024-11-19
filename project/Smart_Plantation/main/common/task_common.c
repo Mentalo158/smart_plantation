@@ -19,7 +19,7 @@ QueueHandle_t moistureDataQueue;
 QueueHandle_t dhtDataQueue;
 QueueHandle_t lightDataQueue;
 QueueHandle_t led_queue;
-QueueHandle_t config_queue;
+QueueHandle_t pump_queue;
 
 void moisture_task(void *pvParameters)
 {
@@ -119,47 +119,59 @@ void time_sync_task(void *pvParameter)
 
 void pump_control_task(void *pvParameter)
 {
-    config_data_t config_data;
+    pump_times config_data;
     bool pump_triggered_today = false;
 
     // Initialkonfiguration aus NVS laden
     config_t initial_config;
     load_config(&initial_config);
-    config_data.hour = initial_config.hours;
-    config_data.minute = initial_config.minutes;
-    config_data.days = initial_config.days;
 
-    // TODO Bediengung einfügen falls die task fehlschlägt prüfen
-    // TODO TASMATO status anzeigen http://<IP-Adresse>/cm?cmnd=Power
+    // Die Konfiguration auf die entsprechenden Daten setzen (7 Tage, Stunden und Minuten)
+    for (int i = 0; i < 7; i++)
+    {
+        config_data.hours[i] = initial_config.hours[i];     // Stunden für jeden Wochentag
+        config_data.minutes[i] = initial_config.minutes[i]; // Minuten für jeden Wochentag
+    }
+    config_data.days = initial_config.days; // Bitmaske der aktiven Tage
+
+    // TODO: Fehlerbehandlung bei Task-Fehlern einfügen
+
     while (1)
     {
-        // TODO FIX
-        //  Warten, bis neue Konfigurationsdaten in die Queue geschrieben werden
-        if (xQueueReceive(config_queue, &config_data, pdMS_TO_TICKS(100)))
+        // Warten, bis neue Konfigurationsdaten in die Queue geschrieben werden
+        if (xQueueReceive(pump_queue, &config_data, pdMS_TO_TICKS(100)))
         {
-            ESP_LOGI("PUMP_TASK", "Neue Konfiguration empfangen: %02d:%02d, Tage = 0x%02X",
-                     config_data.hour, config_data.minute, config_data.days);
+            ESP_LOGI("PUMP_TASK", "Neue Konfiguration empfangen");
 
-            pump_triggered_today = false; // Täglichen Trigger zurücksetzen bei neuer Konfiguration
+            // Täglichen Trigger zurücksetzen bei neuer Konfiguration
+            pump_triggered_today = false;
         }
-        ESP_LOGI("PUMP_TASK", "Neue Konfiguration empfangen: %02d:%02d, Tage = 0x%02X",
-                 config_data.hour, config_data.minute, config_data.days);
 
-        // Aktuelle Zeit überprüfen und Bedingungen ausführen
+        // Aktuelle Zeit prüfen
         time_t now = get_current_time();
         struct tm timeinfo;
         localtime_r(&now, &timeinfo);
 
-        // Prüfen, ob die Pumpe zur eingestellten Zeit aktiviert werden soll
-        if ((timeinfo.tm_hour >= config_data.hour) && !pump_triggered_today)
+        int current_day = get_current_day_of_week(); // Aktuellen Wochentag ermitteln
+        bool should_trigger_today = false;
+
+        // Prüfen, ob die Pumpe für den aktuellen Tag aktiviert werden soll
+        if ((config_data.days & (1 << current_day))) // Prüfen, ob der aktuelle Tag aktiviert ist
         {
-            int current_day = get_current_day_of_week();
-            if ((config_data.days & (1 << current_day)) && (timeinfo.tm_min >= config_data.minute))
+            if (timeinfo.tm_hour == config_data.hours[current_day] && timeinfo.tm_min == config_data.minutes[current_day])
             {
-                ESP_LOGI("PUMP_TASK", "Pumpe aktivieren: Geplante Zeit erreicht.");
-                tasmota_toggle_power(2000); // Beispielwert für die Dauer
-                pump_triggered_today = true;
+                should_trigger_today = true;
             }
+        }
+
+        // Wenn die Bedingungen erfüllt sind und die Pumpe noch nicht für den heutigen Tag ausgelöst wurde
+        if (should_trigger_today && !pump_triggered_today)
+        {
+            ESP_LOGI("PUMP_TASK", "Pumpe aktivieren: Geplante Zeit erreicht.");
+            tasmota_toggle_power(2000); // Beispielwert für die Dauer
+
+            // Setze den Trigger für den heutigen Tag
+            pump_triggered_today = true;
         }
 
         // Täglichen Auslöser um Mitternacht zurücksetzen
@@ -168,7 +180,8 @@ void pump_control_task(void *pvParameter)
             pump_triggered_today = false;
         }
 
-        vTaskDelay(60000 / portTICK_PERIOD_MS); // Wartezeit für eine Minute, um die Schleife nicht zu überlasten
+        // Warten, bis zur nächsten Minute (um CPU zu schonen)
+        vTaskDelay(60000 / portTICK_PERIOD_MS); // Wartezeit für eine Minute
     }
 }
 
@@ -252,8 +265,8 @@ void init_queue()
         ESP_LOGE("Task_Common", "LED Queue creation failed!");
     }
 
-    config_queue = xQueueCreate(1, sizeof(config_data_t)); // Maximale Länge 1, um nur die letzte Konfiguration zu halten
-    if (config_queue == NULL)
+    pump_queue = xQueueCreate(1, sizeof(pump_times)); // Maximale Länge 1, um nur die letzte Konfiguration zu halten
+    if (pump_queue == NULL)
     {
         ESP_LOGE("Task_Common", "Configuration Queue creation failed!");
     }

@@ -16,8 +16,8 @@
 #include "stdlib.h"
 #include "cJSON.h"
 
-//TODO Handler aufteilen in peri_handlers und sensor_handlers
-//TODO COOLDOWN für die Steckdose anpassen
+// TODO Handler aufteilen in peri_handlers und sensor_handlers
+// TODO COOLDOWN für die Steckdose anpassen
 
 const char *ssid = CONFIG_WIFI_SSID;
 const char *pass = CONFIG_WIFI_PASSWORD;
@@ -62,86 +62,7 @@ extern QueueHandle_t moistureDataQueue;
 extern QueueHandle_t dhtDataQueue;
 extern QueueHandle_t lightDataQueue;
 extern QueueHandle_t led_queue;
-extern QueueHandle_t config_queue;
-
-// Hilfsfunktion zum Extrahieren eines Parameters aus den POST-Daten
-static int extract_param_value(const char *data, const char *param_name, void *param_value, size_t value_size)
-{
-    char *start = strstr(data, param_name);
-    if (!start)
-    {
-        return ESP_FAIL; // Parameter nicht gefunden
-    }
-
-    start += strlen(param_name); // Springe nach dem Parameter-Namen
-    if (*start == '=')
-    {
-        start++; // Springe nach dem '='
-    }
-
-    // Je nach Typ des Parameters den Wert extrahieren
-    if (strchr(param_name, 'h')) // Stunden oder Minuten
-    {
-        char *end = strchr(start, '&');
-        if (!end)
-            end = strchr(start, '\0'); // Ende des Parameters finden
-        size_t len = end - start;
-        char *value = malloc(len + 1);
-        if (!value)
-            return ESP_FAIL;
-
-        strncpy(value, start, len);
-        value[len] = '\0';
-
-        char *token = strtok(value, ",");
-        int i = 0;
-        while (token && i < MAX_TIMES)
-        {
-            ((int *)param_value)[i] = atoi(token); // Stunden/Minuten-Wert in Array speichern
-            token = strtok(NULL, ",");
-            i++;
-        }
-
-        free(value);
-        return ESP_OK;
-    }
-    else if (strchr(param_name, 't') || strchr(param_name, 'r') || strchr(param_name, 'g') || strchr(param_name, 'b') || strchr(param_name, 'd')) // Andere Parameter
-    {
-        int *param_int = (int *)param_value;
-        *param_int = atoi(start); // Ganzzahligen Wert extrahieren
-        return ESP_OK;
-    }
-    return ESP_FAIL;
-}
-
-// Funktion zum Decodieren der URL-codierten POST-Daten
-void url_decode(char *str)
-{
-    char *pstr = str;
-    char *pbuf = str;
-    while (*pstr)
-    {
-        if (*pstr == '%')
-        {
-            // Decode URL Encoded Characters (%XX)
-            char hex[3] = {pstr[1], pstr[2], '\0'};
-            *pbuf = (char)strtol(hex, NULL, 16);
-            pstr += 3;
-        }
-        else if (*pstr == '+')
-        {
-            // Decoding plus to space
-            *pbuf = ' ';
-            pstr++;
-        }
-        else
-        {
-            *pbuf = *pstr++;
-        }
-        pbuf++;
-    }
-    *pbuf = '\0'; // Null-terminate the decoded string
-}
+extern QueueHandle_t pump_queue;
 
 void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
 {
@@ -274,17 +195,42 @@ esp_err_t light_sensor_value_handler(httpd_req_t *req)
 esp_err_t config_get_handler(httpd_req_t *req)
 {
     config_t config;
-    load_config(&config); // Lade die Konfiguration
+    load_config(&config); // Lade die Konfiguration aus dem NVS
 
     // Erstelle die JSON-Antwort
     cJSON *root = cJSON_CreateObject();
+    if (root == NULL)
+    {
+        ESP_LOGE("CONFIG_HANDLER", "Fehler beim Erstellen des JSON-Objekts.");
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+
     cJSON_AddNumberToObject(root, "temp_threshold", config.temp_threshold);
+    cJSON_AddNumberToObject(root, "moisture_threshold", config.moisture_threshold);
+    cJSON_AddBoolToObject(root, "moisture_enabled", config.moisture_enabled);
+    cJSON_AddBoolToObject(root, "temp_enabled", config.temp_enabled);
     cJSON_AddNumberToObject(root, "red", config.red);
     cJSON_AddNumberToObject(root, "green", config.green);
     cJSON_AddNumberToObject(root, "blue", config.blue);
     cJSON_AddNumberToObject(root, "days", config.days);
+    cJSON_AddBoolToObject(root, "use_luminance_or_light_intensity", config.use_luminance_or_light_intensity);
+    cJSON_AddBoolToObject(root, "use_dynamic_lightning", config.use_dynamic_lightning);
 
+    // Füge die fehlenden Werte hinzu
+    cJSON_AddNumberToObject(root, "luminance", config.luminance);             // Lux-Wert
+    cJSON_AddNumberToObject(root, "light_intensity", config.light_intensity); // Lichtintensität
+
+    // Times (Stunden und Minuten)
     cJSON *times = cJSON_CreateArray();
+    if (times == NULL)
+    {
+        ESP_LOGE("CONFIG_HANDLER", "Fehler beim Erstellen des Times-Arrays.");
+        cJSON_Delete(root);
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+
     for (int i = 0; i < MAX_TIMES; i++)
     {
         cJSON *time_obj = cJSON_CreateObject();
@@ -296,9 +242,17 @@ esp_err_t config_get_handler(httpd_req_t *req)
 
     // Sende die JSON-Antwort
     char *json_response = cJSON_PrintUnformatted(root);
+    if (json_response == NULL)
+    {
+        ESP_LOGE("CONFIG_HANDLER", "Fehler beim Erstellen der JSON-Antwort.");
+        cJSON_Delete(root);
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
     httpd_resp_send(req, json_response, strlen(json_response));
 
-    cJSON_Delete(root); // Speicher freigeben
+    // Speicher freigeben
+    cJSON_Delete(root);
     free(json_response);
 
     return ESP_OK;
@@ -328,7 +282,7 @@ esp_err_t config_set_handler(httpd_req_t *req)
     if (json == NULL)
     {
         ESP_LOGE("CONFIG_HANDLER", "Fehler beim Parsen des JSON.");
-        httpd_resp_send_500(req);
+        httpd_resp_send_500(req); // Bad request
         return ESP_FAIL;
     }
 
@@ -336,24 +290,73 @@ esp_err_t config_set_handler(httpd_req_t *req)
 
     // Extrahiere die Parameter aus dem JSON
     cJSON *temp_threshold = cJSON_GetObjectItemCaseSensitive(json, "temp_threshold");
+    cJSON *moisture_threshold = cJSON_GetObjectItemCaseSensitive(json, "moisture_threshold");
+    cJSON *moisture_enabled = cJSON_GetObjectItemCaseSensitive(json, "moisture_enabled");
+    cJSON *temp_enabled = cJSON_GetObjectItemCaseSensitive(json, "temp_enabled");
     cJSON *red = cJSON_GetObjectItemCaseSensitive(json, "red");
     cJSON *green = cJSON_GetObjectItemCaseSensitive(json, "green");
     cJSON *blue = cJSON_GetObjectItemCaseSensitive(json, "blue");
     cJSON *days = cJSON_GetObjectItemCaseSensitive(json, "days");
     cJSON *hours = cJSON_GetObjectItemCaseSensitive(json, "hours");
     cJSON *minutes = cJSON_GetObjectItemCaseSensitive(json, "minutes");
+    cJSON *use_luminance_or_light_intensity = cJSON_GetObjectItemCaseSensitive(json, "use_luminance_or_light_intensity");
+    cJSON *use_dynamic_lightning = cJSON_GetObjectItemCaseSensitive(json, "use_dynamic_lightning");
+
+    // Füge die fehlenden Werte hinzu
+    cJSON *luminance = cJSON_GetObjectItemCaseSensitive(json, "luminance");
+    cJSON *light_intensity = cJSON_GetObjectItemCaseSensitive(json, "light_intensity");
 
     // Überprüfen und Zuweisen der Werte
-    if (cJSON_IsString(temp_threshold) && temp_threshold->valuestring)
-        new_config.temp_threshold = atoi(temp_threshold->valuestring); // Umwandlung von String zu Integer
-    if (cJSON_IsString(red) && red->valuestring)
-        new_config.red = atoi(red->valuestring); // Umwandlung von String zu Integer
-    if (cJSON_IsString(green) && green->valuestring)
-        new_config.green = atoi(green->valuestring); // Umwandlung von String zu Integer
-    if (cJSON_IsString(blue) && blue->valuestring)
-        new_config.blue = atoi(blue->valuestring); // Umwandlung von String zu Integer
+    if (cJSON_IsNumber(temp_threshold))
+    {
+        new_config.temp_threshold = temp_threshold->valueint;
+    }
+    if (cJSON_IsNumber(moisture_threshold))
+    {
+        new_config.moisture_threshold = moisture_threshold->valueint;
+    }
+    if (cJSON_IsBool(moisture_enabled))
+    {
+        new_config.moisture_enabled = cJSON_IsTrue(moisture_enabled);
+    }
+    if (cJSON_IsBool(temp_enabled))
+    {
+        new_config.temp_enabled = cJSON_IsTrue(temp_enabled);
+    }
+    if (cJSON_IsNumber(red))
+    {
+        new_config.red = red->valueint;
+    }
+    if (cJSON_IsNumber(green))
+    {
+        new_config.green = green->valueint;
+    }
+    if (cJSON_IsNumber(blue))
+    {
+        new_config.blue = blue->valueint;
+    }
     if (cJSON_IsNumber(days))
+    {
         new_config.days = days->valueint;
+    }
+    if (cJSON_IsBool(use_luminance_or_light_intensity))
+    {
+        new_config.use_luminance_or_light_intensity = cJSON_IsTrue(use_luminance_or_light_intensity);
+    }
+    if (cJSON_IsBool(use_dynamic_lightning))
+    {
+        new_config.use_dynamic_lightning = cJSON_IsTrue(use_dynamic_lightning);
+    }
+
+    // Setze Luminance und Lichtintensität, falls vorhanden
+    if (cJSON_IsNumber(luminance))
+    {
+        new_config.luminance = luminance->valueint;
+    }
+    if (cJSON_IsNumber(light_intensity))
+    {
+        new_config.light_intensity = light_intensity->valueint;
+    }
 
     // Extrahiere Stunden und Minuten
     if (cJSON_IsArray(hours) && cJSON_IsArray(minutes))
@@ -364,25 +367,24 @@ esp_err_t config_set_handler(httpd_req_t *req)
         cJSON_ArrayForEach(hour_item, hours)
         {
             if (i < MAX_TIMES && cJSON_IsNumber(hour_item))
+            {
                 new_config.hours[i] = hour_item->valueint;
+            }
             i++;
         }
 
         i = 0;
         cJSON_ArrayForEach(minute_item, minutes)
         {
-            // Falls der Minuten-Wert null ist, setzen wir ihn auf 0
-            if (i < MAX_TIMES && (minute_item == NULL || cJSON_IsNull(minute_item)))
-                new_config.minutes[i] = 0; // Standardwert für Minuten
-            else if (i < MAX_TIMES && cJSON_IsNumber(minute_item))
+            if (i < MAX_TIMES && cJSON_IsNumber(minute_item))
+            {
                 new_config.minutes[i] = minute_item->valueint;
+            }
             i++;
         }
     }
 
-    
-
-    // Konfiguration in NVS speichern
+    // Konfigurationsdaten in NVS speichern
     save_config(&new_config);
 
     // Rückmeldung an den Webserver

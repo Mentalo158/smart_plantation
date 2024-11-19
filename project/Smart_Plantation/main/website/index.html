@@ -23,15 +23,12 @@
             <div class="moisture-text" id="moistureText" hx-get="/adc" hx-trigger="load, every 1s" hx-swap="innerHTML">
                 Bodenfeuchte: - %
             </div>
-
             <div id="temperatureDisplay" hx-get="/temperature" hx-trigger="load, every 1s" hx-swap="innerHTML">
                 Temperatur: -
             </div>
-
             <div id="lightDisplay" hx-get="/light" hx-trigger="load, every 1s" hx-swap="innerHTML">
                 Lichtintensität: - %
             </div>
-
             <div id="tasmotaControl">
                 <button hx-get="/plug_switch" hx-trigger="click" hx-swap="innerHTML">
                     Steckdose für 2 Sekunden einschalten
@@ -41,13 +38,32 @@
 
         <div class="peripherals-container">
             <div class="config">Konfiguration</div>
+
+            <!-- Temperaturschwelle -->
             <label for="tempThreshold">Temperaturschwellenwert (°C):</label>
             <input type="number" id="tempThreshold" name="temp_threshold" placeholder="z.B. 25">
+            <button id="toggleCooling">Kühlung einschalten</button>
+
+            <!-- Bodenfeuchte -->
+            <label for="moistureThreshold">Bodenfeuchte-Schwellenwert (%):</label>
+            <input type="number" id="moistureThreshold" name="moisture_threshold" placeholder="z.B. 30">
+            <button id="toggleMoisture">Automatische Bewässerung einschalten</button>
+
+            <!-- Lichtintensität und Lux -->
+            <label for="lightIntensity">Lichtintensität (%):</label>
+            <input type="number" id="lightIntensity" name="light_intensity" placeholder="z.B. 50">
+
+            <label for="luxValue">Lux-Wert:</label>
+            <input type="number" id="luxValue" name="lux_value" placeholder="z.B. 1000">
+
+            <button id="switchLightMode">Zwischen Lux und Intensität wechseln</button>
+            <button id="toggleLightOption">Licht-Option deaktivieren</button>
 
             <!-- Farbauswahl -->
-            <label for="color">LED Farbe auswählen</label>
+            <label for="colorPicker">LED Farbe auswählen</label>
             <input type="color" id="colorPicker" value="#ffffff">
 
+            <!-- Wochentage und Uhrzeiten -->
             <label>Wochentage und Uhrzeiten:</label>
             <div id="days">
                 <!-- Sonntag -->
@@ -128,11 +144,12 @@
                 </label>
             </div>
 
+            <!-- Konfiguration senden -->
             <form id="configForm">
                 <input type="hidden" id="red" name="red" value="255">
                 <input type="hidden" id="green" name="green" value="255">
                 <input type="hidden" id="blue" name="blue" value="255">
-                <button type="submit">Konfiguration setzen</button>
+                <button type="submit">Gesamte Konfiguration senden</button>
             </form>
         </div>
     </div>
