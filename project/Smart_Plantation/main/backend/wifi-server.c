@@ -384,6 +384,41 @@ esp_err_t config_set_handler(httpd_req_t *req)
         }
     }
 
+    // Neue Konfigurationsdaten für die Queue vorbereiten
+    pump_times pump_config_data;
+
+    // Stunden und Minuten für jeden Wochentag setzen
+    for (int i = 0; i < 7; i++)
+    {
+        pump_config_data.hours[i] = new_config.hours[i];     // Stunden für jeden Wochentag
+        pump_config_data.minutes[i] = new_config.minutes[i]; // Minuten für jeden Wochentag
+    }
+
+    // Wochentage (Bitmaske) setzen
+    pump_config_data.days = new_config.days;
+
+    // Konfigurationsdaten in die Queue schreiben (falls sie voll ist, wird sie überschrieben)
+    if (xQueueOverwrite(pump_queue, &pump_config_data) != pdTRUE)
+    {
+        ESP_LOGE("CONFIG_HANDLER", "Fehler beim Überschreiben in config_queue");
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+
+    // LED-Werte in die LED-Queue schreiben
+    led_color_t led_data;
+    led_data.red = new_config.red;
+    led_data.green = new_config.green;
+    led_data.blue = new_config.blue;
+
+    // Sende die LED-Daten an die Queue
+    if (xQueueSend(led_queue, &led_data, pdMS_TO_TICKS(10)) != pdTRUE)
+    {
+        printf("fehler beim senden in die led_queue");
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+
     // Konfigurationsdaten in NVS speichern
     save_config(&new_config);
 
