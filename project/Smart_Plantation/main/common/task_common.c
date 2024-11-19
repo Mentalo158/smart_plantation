@@ -20,8 +20,10 @@ QueueHandle_t dhtDataQueue;
 QueueHandle_t lightDataQueue;
 QueueHandle_t led_queue;
 QueueHandle_t pump_queue;
+QueueHandle_t fan_queue;
 
-void moisture_task(void *pvParameters)
+    void
+    moisture_task(void *pvParameters)
 {
     adc_init(MOISTURE_CHANNEL, ADC_WIDTH_BIT_12, MOISTURE_ATTEN);
 
@@ -191,34 +193,52 @@ void fan_control_task(void *pvParameters)
     int fan_tach_pin = GPIO_NUM_18;   // Tachometer-Pin des Lüfters
     int fan_control_pin = GPIO_NUM_0; // Steuer-Pin für den Transistor
 
+    config_t initial_config;
+    load_config(&initial_config);
+
+    dht_data_t dhtData;
+
+    // `temp_enabled` aus der Konfiguration interpretieren
+    bool isFanEnabled = (initial_config.temp_enabled != 0);
+
     // Initialisiere den Lüfter mit den Pins
     fan_init(fan_pwm_pin, fan_control_pin, fan_tach_pin);
 
-    // Schalte den Lüfter ein und setze ihn auf maximale Geschwindigkeit (255)
-    printf("Schalte Lüfter ein.\n");
-    fan_on(fan_control_pin, 255);
+    while (1)
+    {
+        // Aktualisiere `isFanEnabled` aus der Queue, wenn vorhanden
+        uint8_t tempEnabledFlag;
+        if (xQueueReceive(fan_queue, &tempEnabledFlag, pdMS_TO_TICKS(100)))
+        {
+            isFanEnabled = (tempEnabledFlag != 0);
+        }
 
-    // Lasse den Lüfter für 5 Sekunden laufen
-    vTaskDelay(pdMS_TO_TICKS(5000));
+        if (isFanEnabled)
+        {
+            fan_on(fan_control_pin, 0);
 
-    // Reduziere die Lüftergeschwindigkeit auf 50% (128)
-    printf("Reduziere Lüftergeschwindigkeit auf 50%%.\n");
-    fan_set_speed(128);
+            if (xQueuePeek(dhtDataQueue, &dhtData, pdMS_TO_TICKS(100)) == pdTRUE)
+            {
+                if (dhtData.temperature >= initial_config.temp_threshold)
+                {
+                    int temp_diff = dhtData.temperature - initial_config.temp_threshold;
 
-    // Lasse den Lüfter für weitere 5 Sekunden laufen
-    vTaskDelay(pdMS_TO_TICKS(5000));
+                    int fan_speed = temp_diff * 10;
+                    fan_speed = (fan_speed > 255) ? 255 : (fan_speed < 0 ? 0 : fan_speed);
 
-    // RPM auslesen (hier gehen wir von 2 Impulsen pro Umdrehung aus, falls das beim Lüfter zutrifft)
-    uint32_t rpm = fan_get_speed_rpm(2);
-    printf("Aktuelle Lüfterdrehzahl: %lu RPM\n", rpm); // Benutze %lu für uint32_t
+                    fan_set_speed(fan_speed);
 
-    // Schalte den Lüfter vollständig aus
-    printf("Schalte Lüfter aus.\n");
-    fan_off(fan_control_pin);
-
-    // Beende die Task nach dem Test
-    printf("Fan-Control-Test abgeschlossen.\n");
-    vTaskDelete(NULL);
+                    printf("Lüftergeschwindigkeit: %d (Temperatur: %.2f°C)\n", fan_speed, dhtData.temperature);
+                }
+            }
+        }
+        else
+        {
+            fan_off(fan_control_pin);
+            printf("Lüfter deaktiviert durch Konfiguration.\n");
+        }
+        vTaskDelay(pdMS_TO_TICKS(3000));
+    }
 }
 
 void webServerTask(void *pvParameters)
@@ -269,5 +289,11 @@ void init_queue()
     if (pump_queue == NULL)
     {
         ESP_LOGE("Task_Common", "Configuration Queue creation failed!");
+    }
+
+    fan_queue = xQueueCreate(1, sizeof(uint8_t)); // Maximale Länge 1, um nur den aktuellen Status zu halten
+    if (fan_queue == NULL)
+    {
+        ESP_LOGE("Task_Common", "Fan Queue creation failed!");
     }
 }

@@ -26,6 +26,7 @@ extern QueueHandle_t dhtDataQueue;      // Queue für DHT-Daten
 extern QueueHandle_t lightDataQueue;    // Queue für Lichtdaten
 extern QueueHandle_t led_queue;         // Queue für LED-Daten
 extern QueueHandle_t pump_queue;
+extern QueueHandle_t fan_queue;
 /**
  * @brief Initialisiert die Queues.
  *

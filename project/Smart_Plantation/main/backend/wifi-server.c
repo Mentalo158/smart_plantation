@@ -63,6 +63,7 @@ extern QueueHandle_t dhtDataQueue;
 extern QueueHandle_t lightDataQueue;
 extern QueueHandle_t led_queue;
 extern QueueHandle_t pump_queue;
+extern QueueHandle_t fan_queue;
 
 void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
 {
@@ -401,6 +402,14 @@ esp_err_t config_set_handler(httpd_req_t *req)
     if (xQueueOverwrite(pump_queue, &pump_config_data) != pdTRUE)
     {
         ESP_LOGE("CONFIG_HANDLER", "Fehler beim Überschreiben in config_queue");
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+
+    uint8_t temp_enabled_status = (new_config.temp_enabled) ? 1 : 0;
+    if (xQueueSend(fan_queue, &temp_enabled_status, pdMS_TO_TICKS(10)) != pdTRUE)
+    {
+        ESP_LOGE("CONFIG_HANDLER", "Fehler beim Senden in die fan_queue");
         httpd_resp_send_500(req);
         return ESP_FAIL;
     }
