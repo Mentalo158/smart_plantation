@@ -3,6 +3,8 @@
 
 #include "esp_err.h"
 #include "bh1750.h"
+
+#define I2C_MASTER_NUM 0
 // Struktur, um den aktuellen Lichtstatus zu speichern
 typedef struct
 {
@@ -11,7 +13,7 @@ typedef struct
 } LightState;
 
 // Funktion zur Initialisierung des BH1750 Sensors
-esp_err_t bh1750_init();
+esp_err_t bh1750_init(gpio_num_t scl_pin, gpio_num_t sda_pin);
 
 // Funktion zum Abrufen des aktuellen Lichtstatus
 LightState get_light_state();

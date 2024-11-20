@@ -2,32 +2,26 @@
 #include "esp_log.h"
 #include "driver/i2c.h"
 
-#define I2C_MASTER_NUM 0                       // I2C Bus Nummer
 #define BH1750_ADDR BH1750_I2C_ADDRESS_DEFAULT // Standardadresse des BH1750 Sensors
-
 static const char *TAG = "LightSensor";
-
-// I2C Konfiguration für den Sensor
-#define I2C_MASTER_SCL_IO 22      // I2C SCL Pin
-#define I2C_MASTER_SDA_IO 21      // I2C SDA Pin
-#define I2C_MASTER_FREQ_HZ 100000 // I2C Frequenz
 
 static bh1750_handle_t sensor = NULL;
 
 // Maximale Lux-Werte (Sonnenlicht)
 #define MAX_LUX_VALUE 50000
 
-// Funktion zur Initialisierung des BH1750 Sensors
-esp_err_t bh1750_init()
+// Funktion zur Initialisierung des BH1750 Sensors mit Pins als Parameter
+esp_err_t bh1750_init(gpio_num_t scl_pin, gpio_num_t sda_pin)
 {
     // I2C-Konfiguration
     i2c_config_t conf = {
         .mode = I2C_MODE_MASTER,
-        .sda_io_num = I2C_MASTER_SDA_IO,
-        .scl_io_num = I2C_MASTER_SCL_IO,
+        .sda_io_num = sda_pin,
+        .scl_io_num = scl_pin,
         .sda_pullup_en = GPIO_PULLUP_ENABLE,
         .scl_pullup_en = GPIO_PULLUP_ENABLE,
-        .master.clk_speed = I2C_MASTER_FREQ_HZ};
+        .master.clk_speed = 100000 // I2C Frequenz
+    };
 
     // I2C initialisieren
     esp_err_t err = i2c_param_config(I2C_MASTER_NUM, &conf);

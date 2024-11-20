@@ -15,6 +15,7 @@
 #include "string.h"
 #include "stdlib.h"
 #include "cJSON.h"
+#include "sensors/light_sensor.h"
 
 // TODO Handler aufteilen in peri_handlers und sensor_handlers
 // TODO COOLDOWN für die Steckdose anpassen
@@ -175,18 +176,24 @@ esp_err_t temperature_value_handler(httpd_req_t *req)
 
 esp_err_t light_sensor_value_handler(httpd_req_t *req)
 {
-    float lightPercentage = 0.0f;
+    LightState lightState;
 
-    if (xQueuePeek(lightDataQueue, &lightPercentage, 0) == pdTRUE)
+    // Versuche, den aktuellen LightState aus der Queue zu holen
+    if (xQueuePeek(lightDataQueue, &lightState, 0) == pdTRUE)
     {
-        char response[64];
-        snprintf(response, sizeof(response), "Lichtintensität: %.2f", lightPercentage); // Prozentsatz übergeben
+        // Erstelle eine Antwort im gewünschten Format
+        char response[128];
+        snprintf(response, sizeof(response),
+                 "Lichtintensität: %.2f%%\nLux-Wert: %u",
+                 lightState.light_intensity, lightState.lux_value); // Gebe beide Werte aus
 
+        // Setze den Antworttyp und sende die Antwort
         httpd_resp_set_type(req, "text/plain");
         httpd_resp_send(req, response, strlen(response));
     }
     else
     {
+        // Falls kein Wert in der Queue ist, sende einen 404-Fehler
         httpd_resp_send_404(req);
     }
 

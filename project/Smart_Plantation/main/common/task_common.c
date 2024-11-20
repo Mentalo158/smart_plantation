@@ -9,6 +9,8 @@
 #include "esp_log.h"
 #include "backend/sntp_client.h"
 #include "common/config_storage.h"
+#include "sensors/light_sensor.h"
+#include "sensors/moisture_sensor.h"
 
 
 #define QUEUE_LENGTH 1
@@ -22,25 +24,33 @@ QueueHandle_t led_queue;
 QueueHandle_t pump_queue;
 QueueHandle_t fan_queue;
 
-    void
-    moisture_task(void *pvParameters)
+void moisture_task(void *pvParameters)
 {
-    adc_init(MOISTURE_CHANNEL, ADC_WIDTH_BIT_12, MOISTURE_ATTEN);
+    // Initialisierung des I2C-Busses für den Feuchtigkeitssensor
+    if (init_soil_sensor_i2c(I2C_SCL_PIN, I2C_SDA_PIN) != ESP_OK)
+    {
+        ESP_LOGE("Moisture_Sensor", "Fehler bei der I2C-Initialisierung");
+        vTaskDelete(NULL);
+    }
 
     while (1)
     {
-        float moisturePercentage = adc_read_sensor(MOISTURE_CHANNEL, MOISTURE_ADC_MAX_VALUE);
+        float moisture_value = readMoistureValueInPercent(I2C_SCL_PIN, I2C_SDA_PIN);
 
-        if (xQueueOverwrite(moistureDataQueue, &moisturePercentage) != pdPASS)
+        if (moisture_value != -1.0f)
         {
-            ESP_LOGE("ADC_Sensor", "Failed to overwrite ADC value in queue");
-        }
-        else
-        {
-            ESP_LOGI("ADC_Sensor", "ADC Value: %.2f%%", moisturePercentage);
+            // Feuchtigkeitswert in die Queue schreiben
+            if (xQueueOverwrite(moistureDataQueue, &moisture_value) != pdPASS)
+            {
+                ESP_LOGE("Moisture_Sensor", "Fehler beim Übertragen der Feuchtigkeitsdaten");
+            }
+            else
+            {
+                ESP_LOGI("Moisture_Sensor", "Feuchtigkeit: %.2f%%", moisture_value);
+            }
         }
 
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(1000)); // 1 Sekunde Verzögerung
     }
 }
 
@@ -67,24 +77,31 @@ void dhtTask(void *pvParameters)
 
 void light_sensor_task(void *pvParameters)
 {
-    adc_init(LIGHT_CHANNEL, ADC_WIDTH_BIT_12, LIGHT_ATTEN);
+    // Initialisieren des BH1750 Sensors mit den angegebenen Pins
+    if (bh1750_init(I2C_SCL_PIN, I2C_SDA_PIN) != ESP_OK)
+    {
+        ESP_LOGE("LightSensor", "Sensorinitialisierung fehlgeschlagen");
+        vTaskDelete(NULL); // Task beenden, wenn Sensor nicht initialisiert werden kann
+        return;
+    }
 
     while (1)
     {
-        float lightPercentage = 100.0f - adc_read_sensor(LIGHT_CHANNEL, LIGHT_ADC_MAX_VALUE);
+        // Holen des aktuellen Lichtstatus
+        LightState state = get_light_state();
 
-        // Versuche, den ADC-Wert in die Queue zu schreiben
-        if (xQueueOverwrite(lightDataQueue, &lightPercentage) != pdPASS)
+        // Übertragen des Lichtwerts in die Queue
+        if (xQueueOverwrite(lightDataQueue, &state) != pdPASS)
         {
-            ESP_LOGE("Light_Sensor", "Failed to overwrite light sensor value in queue");
-        }
-        else
-        {
-            ESP_LOGI("Light_Sensor", "Light Sensor Value: %.2f", lightPercentage);
+            ESP_LOGE("LightSensor", "Fehler beim Übertragen der Lichtdaten");
         }
 
-        vTaskDelay(pdMS_TO_TICKS(5000));
+        // Alle 1000ms den Sensor abfragen
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
+
+    // Deinitialisieren des Sensors (diese Zeile wird nicht erreicht, da Task unendlich läuft)
+    bh1750_deinit();
 }
 
 void led_task(void *pvParameters)
@@ -261,38 +278,38 @@ void webServerTask(void *pvParameters)
 
 void init_queue()
 {
-    moistureDataQueue = xQueueCreate(QUEUE_LENGTH, ITEM_SIZE);
+    moistureDataQueue = xQueueCreate(QUEUE_LENGTH, sizeof(float)); // Feuchtigkeitswerte als float
     if (moistureDataQueue == NULL)
     {
         ESP_LOGE("Task_Common", "ADC Queue creation failed!");
     }
 
-    dhtDataQueue = xQueueCreate(QUEUE_LENGTH, sizeof(dht_data_t));
+    dhtDataQueue = xQueueCreate(QUEUE_LENGTH, sizeof(dht_data_t)); // DHT Daten
     if (dhtDataQueue == NULL)
     {
         ESP_LOGE("Task_Common", "DHT Queue creation failed!");
     }
 
-    lightDataQueue = xQueueCreate(QUEUE_LENGTH, ITEM_SIZE);
+    // Für LightState Struktur
+    lightDataQueue = xQueueCreate(QUEUE_LENGTH, sizeof(LightState)); // Queue für Lichtwerte
     if (lightDataQueue == NULL)
     {
         ESP_LOGE("Task_Common", "Light Sensor Queue creation failed!");
     }
 
-    led_queue = xQueueCreate(QUEUE_LENGTH, sizeof(led_color_t));
+    led_queue = xQueueCreate(QUEUE_LENGTH, sizeof(led_color_t)); // Queue für LED Farben
     if (led_queue == NULL)
     {
         ESP_LOGE("Task_Common", "LED Queue creation failed!");
     }
 
-    pump_queue = xQueueCreate(1, sizeof(pump_times)); // Maximale Länge 1, um nur die letzte Konfiguration zu halten
+    pump_queue = xQueueCreate(QUEUE_LENGTH, sizeof(pump_times)); 
     if (pump_queue == NULL)
     {
         ESP_LOGE("Task_Common", "Configuration Queue creation failed!");
     }
 
-    fan_queue = xQueueCreate(1, sizeof(uint8_t)); // Maximale Länge 1, um nur den aktuellen Status zu halten
-    if (fan_queue == NULL)
+    fan_queue = xQueueCreate(QUEUE_LENGTH, sizeof(uint8_t)); 
     {
         ESP_LOGE("Task_Common", "Fan Queue creation failed!");
     }
