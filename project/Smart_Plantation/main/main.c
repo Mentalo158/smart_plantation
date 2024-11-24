@@ -7,22 +7,6 @@
 #include "backend/wifi-server.h"
 #include "driver/gpio.h"
 
-// Funktion zur Überwachung des Stackverbrauchs
-void monitor_stack_usage()
-{
-    UBaseType_t sntp_stack_usage = uxTaskGetStackHighWaterMark(NULL); // Stack-Wasserstand für den aktuellen Task
-    ESP_LOGI("Stack Monitoring", "Free stack space for current task: %d bytes", sntp_stack_usage);
-
-    // Hier könnte man spezifische Stack-Messung für die Webserver-Task einfügen
-    // Wenn die Task-ID bekannt ist, können wir den Stack von webServerTask separat überprüfen
-    TaskHandle_t webserver_task_handle = xTaskGetHandle("Web Server Task"); // Hole Handle für Webserver Task
-    if (webserver_task_handle != NULL)
-    {
-        UBaseType_t webserver_stack_usage = uxTaskGetStackHighWaterMark(webserver_task_handle); // Stack-Wasserstand des Webserver Tasks
-        ESP_LOGI("Stack Monitoring", "Free stack space for Web Server Task: %d bytes", webserver_stack_usage);
-    }
-}
-
 // Hauptanwendung
 void app_main()
 {
@@ -39,6 +23,8 @@ void app_main()
 
     // Queue initialisieren
     init_queue();
+
+    //ESP_ERROR_CHECK(i2cdev_init());
 
     // WLAN-Verbindung herstellen
     wifi_connection();

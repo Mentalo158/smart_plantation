@@ -8,6 +8,8 @@
 // I2C Pin-Konfiguration für die Feuchtigkeits- und Lichtsensoren
 #define I2C_SCL_PIN 22 // Gemeinsamer SCL Pin für beide Sensoren
 #define I2C_SDA_PIN 21 // Gemeinsamer SDA Pin für beide Sensoren
+#define I2C_SCL_PIN_SOIL 19 // Neuer SCL Pin für den Feuchtigkeitssensor
+#define I2C_SDA_PIN_SOIL 18 // Neuer SDA Pin für den Feuchtigkeitssensor
 
 #define DHT_GPIO_PIN 4 // GPIO Pin für den DHT Sensor
 

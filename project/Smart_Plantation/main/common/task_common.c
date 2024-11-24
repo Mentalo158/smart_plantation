@@ -27,17 +27,18 @@ QueueHandle_t fan_queue;
 void moisture_task(void *pvParameters)
 {
     // Initialisierung des I2C-Busses für den Feuchtigkeitssensor
-    if (init_soil_sensor_i2c(I2C_SCL_PIN, I2C_SDA_PIN) != ESP_OK)
+    if (init_soil_sensor_i2c(I2C_SCL_PIN_SOIL, I2C_SDA_PIN_SOIL) != ESP_OK)
     {
         ESP_LOGE("Moisture_Sensor", "Fehler bei der I2C-Initialisierung");
-        vTaskDelete(NULL);
+        vTaskDelete(NULL); // Task beenden, falls Initialisierung fehlschlägt
     }
 
     while (1)
     {
-        float moisture_value = readMoistureValueInPercent(I2C_SCL_PIN, I2C_SDA_PIN);
+        // Feuchtigkeitswert in Prozent lesen
+        float moisture_value = readMoistureValueInPercent();
 
-        if (moisture_value != -1.0f)
+        if (moisture_value != -1.0f) // Überprüfen, ob der Sensorwert gültig ist
         {
             // Feuchtigkeitswert in die Queue schreiben
             if (xQueueOverwrite(moistureDataQueue, &moisture_value) != pdPASS)
@@ -77,10 +78,32 @@ void dhtTask(void *pvParameters)
 
 void light_sensor_task(void *pvParameters)
 {
-    // Initialisieren des BH1750 Sensors mit den angegebenen Pins
-    if (bh1750_init(I2C_SCL_PIN, I2C_SDA_PIN) != ESP_OK)
+
+
+        // Versuche, den BH1750-Sensor mehrmals zu initialisieren
+        const int max_retries = 5; // Maximale Anzahl der Versuche
+    int retry_count = 0;
+    esp_err_t init_status = ESP_FAIL;
+
+    while (retry_count < max_retries)
     {
-        ESP_LOGE("LightSensor", "Sensorinitialisierung fehlgeschlagen");
+        init_status = bh1750_init(I2C_SCL_PIN, I2C_SDA_PIN);
+        if (init_status == ESP_OK)
+        {
+            ESP_LOGI("LightSensor", "Sensor erfolgreich initialisiert (Versuch %d).", retry_count + 1);
+            break;
+        }
+        else
+        {
+            ESP_LOGW("LightSensor", "Sensorinitialisierung fehlgeschlagen (Versuch %d von %d).", retry_count + 1, max_retries);
+            vTaskDelay(pdMS_TO_TICKS(1000)); // 1 Sekunde warten vor erneutem Versuch
+        }
+        retry_count++;
+    }
+
+    if (init_status != ESP_OK)
+    {
+        ESP_LOGE("LightSensor", "Sensorinitialisierung endgültig fehlgeschlagen nach %d Versuchen.", max_retries);
         vTaskDelete(NULL); // Task beenden, wenn Sensor nicht initialisiert werden kann
         return;
     }
@@ -96,12 +119,9 @@ void light_sensor_task(void *pvParameters)
             ESP_LOGE("LightSensor", "Fehler beim Übertragen der Lichtdaten");
         }
 
-        // Alle 1000ms den Sensor abfragen
+        // Sensor alle 1000ms abfragen
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
-
-    // Deinitialisieren des Sensors (diese Zeile wird nicht erreicht, da Task unendlich läuft)
-    bh1750_deinit();
 }
 
 void led_task(void *pvParameters)

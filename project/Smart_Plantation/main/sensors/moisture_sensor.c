@@ -7,35 +7,21 @@
 // Einmalige I²C-Initialisierung
 esp_err_t init_soil_sensor_i2c(gpio_num_t scl_pin, gpio_num_t sda_pin)
 {
-    i2c_config_t conf = {
-        .mode = I2C_MODE_MASTER,
-        .sda_io_num = sda_pin,
-        .scl_io_num = scl_pin,
-        .sda_pullup_en = GPIO_PULLUP_ENABLE,
-        .scl_pullup_en = GPIO_PULLUP_ENABLE,
-        .master.clk_speed = 100000 // I2C Frequenz
-    };
-
-    // I²C konfigurieren
-    esp_err_t ret = i2c_param_config(I2C_MASTER_NUM, &conf);
-    if (ret != ESP_OK)
+    // I2C-Initialisierung
+    esp_err_t ret = adafruit_stemma_soil_sensor_init(I2C_MASTER_NUM, sda_pin, scl_pin);
+    if (ret == ESP_OK)
     {
-        ESP_LOGE(TAG, "I2C-Konfiguration fehlgeschlagen.");
-        return ret;
+        ESP_LOGI(TAG, "Adafruit Stemma Soil Sensor erfolgreich initialisiert.");
+    }
+    else
+    {
+        ESP_LOGE(TAG, "Fehler bei der Initialisierung des Adafruit Stemma Soil Sensors.");
     }
 
-    // I²C-Treiber installieren
-    ret = i2c_driver_install(I2C_MASTER_NUM, I2C_MODE_MASTER, 0, 0, 0);
-    if (ret != ESP_OK)
-    {
-        ESP_LOGE(TAG, "I2C-Treiberinstallation fehlgeschlagen.");
-        return ret;
-    }
-
-    ESP_LOGI(TAG, "I²C-Schnittstelle erfolgreich initialisiert.");
-    return ESP_OK;
+    return ret;
 }
 
+// Feuchtigkeitswert in Prozent lesen
 float readMoistureValueInPercent()
 {
     uint16_t moisture_value = 0;
@@ -55,6 +41,26 @@ float readMoistureValueInPercent()
     else
     {
         ESP_LOGE(TAG, "Fehler beim Lesen des Feuchtigkeitswerts.");
+        return -1.0f; // Fehlerwert zurückgeben
+    }
+}
+
+// Temperaturwert lesen
+float readTemperatureValue()
+{
+    float temperature_value = 0.0;
+
+    // Temperaturwert vom Sensor lesen
+    esp_err_t ret = adafruit_stemma_soil_sensor_read_temperature(I2C_MASTER_NUM, &temperature_value);
+
+    if (ret == ESP_OK)
+    {
+        ESP_LOGI(TAG, "Temperaturwert: %.2f°C", temperature_value);
+        return temperature_value;
+    }
+    else
+    {
+        ESP_LOGE(TAG, "Fehler beim Lesen des Temperaturwerts.");
         return -1.0f; // Fehlerwert zurückgeben
     }
 }

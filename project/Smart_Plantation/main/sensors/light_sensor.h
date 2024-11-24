@@ -1,25 +1,22 @@
 #ifndef LIGHT_SENSOR_H
 #define LIGHT_SENSOR_H
 
-#include "esp_err.h"
-#include "bh1750.h"
+#include <stdint.h>
+#include <esp_err.h>
+#include <driver/gpio.h>
 
-#define I2C_MASTER_NUM 0
-// Struktur, um den aktuellen Lichtstatus zu speichern
+// Struktur zur Darstellung des Lichtstatus
 typedef struct
 {
-    uint16_t lux_value;    // Lux-Wert
+    uint16_t lux_value;    // Aktueller Lux-Wert
     float light_intensity; // Lichtintensität in Prozent
 } LightState;
 
-// Funktion zur Initialisierung des BH1750 Sensors
+// Initialisiert den BH1750-Sensor
+// Parameter: SCL-Pin und SDA-Pin des I2C-Busses
 esp_err_t bh1750_init(gpio_num_t scl_pin, gpio_num_t sda_pin);
 
-// Funktion zum Abrufen des aktuellen Lichtstatus
+// Liest den aktuellen Lichtstatus (Lux-Wert und Lichtintensität in Prozent)
 LightState get_light_state();
 
-// Funktion zur Freigabe des BH1750 Sensors
-void bh1750_deinit();
-
 #endif // LIGHT_SENSOR_H
-
