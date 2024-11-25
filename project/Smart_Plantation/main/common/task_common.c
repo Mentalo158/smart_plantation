@@ -1,5 +1,4 @@
 #include "task_common.h"
-#include "sensors/adc_read.h"
 #include "backend/wifi-server.h"
 #include "backend/mdns_server.h"
 #include "sensors/temperature_sensor.h"
