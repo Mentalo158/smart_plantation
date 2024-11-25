@@ -54,8 +54,6 @@ extern const uint8_t app_css_start[] asm("_binary_app_css_start");
 extern const uint8_t app_css_end[] asm("_binary_app_css_end");
 extern const uint8_t app_js_start[] asm("_binary_app_js_start");
 extern const uint8_t app_js_end[] asm("_binary_app_js_end");
-extern const uint8_t htmx_js_start[] asm("_binary_htmx_min_js_start");
-extern const uint8_t htmx_js_end[] asm("_binary_htmx_min_js_end");
 extern const uint8_t logo_png_start[] asm("_binary_logo_png_start");
 extern const uint8_t logo_png_end[] asm("_binary_logo_png_end");
 
@@ -116,13 +114,6 @@ esp_err_t js_handler(httpd_req_t *req)
 {
     httpd_resp_set_type(req, "application/javascript");
     httpd_resp_send(req, (const char *)app_js_start, app_js_end - app_js_start);
-    return ESP_OK;
-}
-
-esp_err_t htmx_handler(httpd_req_t *req)
-{
-    httpd_resp_set_type(req, "application/javascript");
-    httpd_resp_send(req, (const char *)htmx_js_start, htmx_js_end - htmx_js_start);
     return ESP_OK;
 }
 
@@ -491,12 +482,6 @@ httpd_uri_t js_uri = {
     .uri = "/app.js",
     .method = HTTP_GET,
     .handler = js_handler,
-    .user_ctx = NULL};
-
-httpd_uri_t htmx_uri = {
-    .uri = "/htmx.min.js",
-    .method = HTTP_GET,
-    .handler = htmx_handler,
     .user_ctx = NULL};
 
 httpd_uri_t logo_uri = {
