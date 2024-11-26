@@ -3,7 +3,6 @@ idf_component_register(
         "peripherals/led_rgb_control.c"
         "backend/mdns_server.c"
         "common/task_common.c"
-        "sensors/adc_read.c"
         "main.c"
         "backend/wifi-server.c"
         "sensors/temperature_sensor.c"
@@ -12,7 +11,7 @@ idf_component_register(
         "peripherals/wifi_plug.c"
         "peripherals/fan_control.c"
         "sensors/light_sensor.c"
-        "sensors/moisture_sensor.c"
+        "sensors/adc_read.c"
         INCLUDE_DIRS "."
         EMBED_FILES
         website/index.html

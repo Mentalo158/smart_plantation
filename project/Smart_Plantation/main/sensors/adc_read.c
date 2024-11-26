@@ -10,18 +10,17 @@
 adc_cali_handle_t adc1_cali_handle;
 adc_oneshot_unit_handle_t adc1_handle;
 
-
 float adcToPercentage(float adcValue, float bitWidth)
 {
-    return (adcValue / bitWidth) * 100.0f;    // Umrechnung in Prozent
+    return (adcValue / bitWidth) * 100.0f; // Umrechnung in Prozent
 }
 
 void adc_init(adc_channel_t channel, adc_bits_width_t bitwidth, adc_atten_t atten)
 {
     // Kalibrierung konfigurieren
     adc_cali_line_fitting_config_t cali_config = {
-        .atten = atten, // Dämpfung einstellen
-        .bitwidth = bitwidth,     // Bitbreite wird als Parameter übergeben
+        .atten = atten,       // Dämpfung einstellen
+        .bitwidth = bitwidth, // Bitbreite wird als Parameter übergeben
     };
 
     // Kalibrierungsschema erstellen
@@ -39,7 +38,7 @@ void adc_init(adc_channel_t channel, adc_bits_width_t bitwidth, adc_atten_t atte
 float adc_read_sensor(adc_channel_t channel, float bidWidth)
 {
     uint32_t adcValue;
-    
+
     adc_oneshot_read(adc1_handle, channel, &adcValue);
     return adcToPercentage((float)adcValue, bidWidth); // Umrechnung in Prozent
 }

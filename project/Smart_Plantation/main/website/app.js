@@ -1,107 +1,201 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // Abrufen und Setzen der gespeicherten Konfigurationswerte beim Laden der Seite
     fetch("/config")
         .then(response => response.json())
         .then(config => {
-            // Setze den Temperaturschwellenwert
-            document.getElementById("tempThreshold").value = config.temp_threshold;
+            console.log("Config geladen:", config);
 
-            // Setze die RGB-Werte und Farb-Picker
-            document.getElementById("red").value = config.red;
-            document.getElementById("green").value = config.green;
-            document.getElementById("blue").value = config.blue;
-            const hexColor = rgbToHex(config.red, config.green, config.blue);
-            document.getElementById("colorPicker").value = hexColor;
+            if (config.days === undefined) config.days = 0;
 
-            // Setze Stunde und Minute
-            document.getElementById("hour").value = config.hour || 0;
-            document.getElementById("minute").value = config.minute || 0;
-            updateTimeField(config.hour, config.minute);
+            const coolingButton = document.getElementById("toggleCooling");
+            coolingButton.textContent = (config.temp_enabled ? "Kühlung ausschalten" : "Kühlung einschalten").trim();
 
-            // Setze die Wochentage-Checkboxen
-            const daysCheckboxes = document.querySelectorAll("#days input[type=checkbox]");
-            daysCheckboxes.forEach((checkbox) => {
-                if (config.days & parseInt(checkbox.value)) {
-                    checkbox.checked = true;
-                }
+            const moistureButton = document.getElementById("toggleMoisture");
+            moistureButton.textContent = (config.moisture_enabled ? "Automatische Bewässerung ausschalten" : "Automatische Bewässerung einschalten").trim();
+
+            document.getElementById("tempThreshold").value = config.temp_threshold || 0;
+            document.getElementById("moistureThreshold").value = config.moisture_threshold || 0;
+            document.getElementById("lightIntensity").value = config.light_intensity || 0;
+            document.getElementById("luxValue").value = config.luminance || 0;
+
+            document.getElementById("red").value = config.red || 0;
+            document.getElementById("green").value = config.green || 0;
+            document.getElementById("blue").value = config.blue || 0;
+            document.getElementById("colorPicker").value = rgbToHex(config.red || 0, config.green || 0, config.blue || 0);
+
+            const lightModeButton = document.getElementById("switchLightMode");
+            lightModeButton.textContent = (config.use_luminance_or_light_intensity ? "Verwende Lux" : "Verwende Intensität").trim();
+
+            const lightOptionButton = document.getElementById("toggleLightOption");
+            lightOptionButton.textContent = (config.use_dynamic_lightning ? "Licht Option Aktivieren" : "Licht Option Deaktivieren").trim();
+
+            const dayIds = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+            dayIds.forEach((day, index) => {
+                const time = config.times?.[index] || { hour: 0, minute: 0 };
+                const formattedTime = `${String(time.hour).padStart(2, "0")}:${String(time.minute).padStart(2, "0")}`;
+                document.getElementById(`time-${day}`).value = formattedTime;
+
+                const checkbox = document.getElementById(day);
+                checkbox.checked = !!(config.days & (1 << index));
             });
+
+            // Initiale Aktivierung/Deaktivierung von Feldern
+            initializeFieldStates(config);
         })
-        .catch(error => console.error("Fehler beim Laden der Konfiguration:", error));
+        .catch(error => {
+            console.error("Fehler beim Laden der Konfiguration:", error);
+        });
 });
 
-// Umwandlung von RGB zu Hex
+function initializeFieldStates(config) {
+    // Kühlung
+    const coolingEnabled = config.temp_enabled;
+    document.getElementById("tempThreshold").disabled = !coolingEnabled;
+
+    // Bewässerung
+    const moistureEnabled = config.moisture_enabled;
+    document.getElementById("moistureThreshold").disabled = !moistureEnabled;
+
+    // Lichtmodi
+    const useLux = config.use_luminance_or_light_intensity;
+    document.getElementById("luxValue").disabled = !useLux;
+    document.getElementById("lightIntensity").disabled = useLux;
+
+    // Dynamisches Licht
+    const useDynamicLighting = config.use_dynamic_lightning;
+    document.getElementById("luxValue").disabled = useDynamicLighting;
+    document.getElementById("lightIntensity").disabled = useDynamicLighting;
+}
+
 function rgbToHex(r, g, b) {
     return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
 }
 
-// Hex zu RGB umwandeln
 function hexToRgb(hex) {
     const bigint = parseInt(hex.slice(1), 16);
-    const r = (bigint >> 16) & 255;
-    const g = (bigint >> 8) & 255;
-    const b = bigint & 255;
-    return { r, g, b };
+    return {
+        r: (bigint >> 16) & 255,
+        g: (bigint >> 8) & 255,
+        b: bigint & 255
+    };
 }
 
-// Farb-Update-Event
 document.getElementById('colorPicker').addEventListener('input', function () {
-    const selectedColor = colorPicker.value;
+    const selectedColor = document.getElementById('colorPicker').value.trim();
     const rgb = hexToRgb(selectedColor);
-    
-    // Setze RGB-Werte in die jeweiligen Eingabefelder
-    document.getElementById('red').value = rgb.r;
-    document.getElementById('green').value = rgb.g;
-    document.getElementById('blue').value = rgb.b;
+    document.getElementById('red').value = rgb.r || 0;
+    document.getElementById('green').value = rgb.g || 0;
+    document.getElementById('blue').value = rgb.b || 0;
 });
 
-// Aktualisiert das 'time'-Eingabefeld basierend auf Stunden und Minuten
-function updateTimeField(hour, minute) {
-    const timeField = document.getElementById("time");
-    const formattedHour = String(hour).padStart(2, "0");
-    const formattedMinute = String(minute).padStart(2, "0");
-    timeField.value = `${formattedHour}:${formattedMinute}`;
-}
+// Kühlung-Toggle
+document.getElementById("toggleCooling").addEventListener("click", function () {
+    const coolingButton = document.getElementById("toggleCooling");
+    const currentState = coolingButton.textContent.trim();
+    const newState = currentState === "Kühlung einschalten" ? "Kühlung ausschalten" : "Kühlung einschalten";
+    coolingButton.textContent = newState;
 
-// Event-Listener für Änderungen im 'time'-Eingabefeld
-document.getElementById("time").addEventListener("input", function () {
-    const [hour, minute] = this.value.split(":").map(Number);
-    document.getElementById("hour").value = hour;
-    document.getElementById("minute").value = minute;
+    // Aktivieren/Deaktivieren des Temperatur-Eingabefeldes
+    document.getElementById("tempThreshold").disabled = newState === "Kühlung einschalten";
 });
 
-// POST-Request für das Konfigurationsformular
+// Automatische Bewässerung-Toggle
+document.getElementById("toggleMoisture").addEventListener("click", function () {
+    const moistureButton = document.getElementById("toggleMoisture");
+    const currentState = moistureButton.textContent.trim();
+    const newState = currentState === "Automatische Bewässerung einschalten" ? "Automatische Bewässerung ausschalten" : "Automatische Bewässerung einschalten";
+    moistureButton.textContent = newState;
+
+    // Aktivieren/Deaktivieren des Moisture-Eingabefeldes
+    document.getElementById("moistureThreshold").disabled = newState === "Automatische Bewässerung einschalten";
+});
+
+// Lichtmodus-Button
+document.getElementById('switchLightMode').addEventListener('click', function () {
+    const lightModeButton = document.getElementById('switchLightMode');
+    const currentMode = lightModeButton.textContent.trim();
+    const newMode = currentMode === "Verwende Lux" ? "Verwende Intensität" : "Verwende Lux";
+    lightModeButton.textContent = newMode;
+
+    // Umschalten der Aktivierung zwischen Lux- und Lichtintensitäts-Eingabefeldern
+    const useLux = newMode === "Verwende Lux";
+    document.getElementById('luxValue').disabled = !useLux;
+    document.getElementById('lightIntensity').disabled = useLux;
+});
+
+// Lichtoption-Toggle
+document.getElementById('toggleLightOption').addEventListener('click', function () {
+    const lightOptionButton = document.getElementById('toggleLightOption');
+    const currentState = lightOptionButton.textContent.trim();
+    const newState = currentState === "Licht Option Deaktivieren" ? "Licht Option Aktivieren" : "Licht Option Deaktivieren";
+    lightOptionButton.textContent = newState;
+
+    // Deaktivieren beider Felder, wenn dynamisches Licht aktiviert ist
+    const useDynamicLighting = newState === "Licht Option Aktivieren";
+    document.getElementById('luxValue').disabled = useDynamicLighting;
+    document.getElementById('lightIntensity').disabled = useDynamicLighting;
+});
+
+// Formular-Submit
 document.getElementById("configForm").addEventListener("submit", function (event) {
     event.preventDefault();
 
-    // Abrufen von Schwellenwert, Farbe und Zeitkonfigurationen
-    const tempThreshold = document.getElementById("tempThreshold").value || 0;
-    const red = document.getElementById("red").value;
-    const green = document.getElementById("green").value;
-    const blue = document.getElementById("blue").value;
-    const hour = document.getElementById("hour").value || 0;
-    const minute = document.getElementById("minute").value || 0;
+    const tempThreshold = parseInt(document.getElementById("tempThreshold").value.trim()) || 0;
+    const moistureThreshold = parseInt(document.getElementById("moistureThreshold").value.trim()) || 0;
+    const lightIntensity = parseInt(document.getElementById("lightIntensity").value.trim()) || 0;
+    const luxValue = parseInt(document.getElementById("luxValue").value.trim()) || 0;
 
-    // Wochentage als eine Zahl kodieren
+    const red = parseInt(document.getElementById("red").value.trim()) || 0;
+    const green = parseInt(document.getElementById("green").value.trim()) || 0;
+    const blue = parseInt(document.getElementById("blue").value.trim()) || 0;
+
+    const dayIds = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+    const hours = [];
+    const minutes = [];
+    dayIds.forEach(day => {
+        const [hour, minute] = document.getElementById(`time-${day}`).value.trim().split(":").map(Number);
+        hours.push(hour || 0);
+        minutes.push(minute || 0);
+    });
+
     let days = 0;
-    document.querySelectorAll("#days input[type=checkbox]").forEach((checkbox) => {
+    dayIds.forEach((day, index) => {
+        const checkbox = document.getElementById(day);
         if (checkbox.checked) {
-            days |= parseInt(checkbox.value);
+            days |= (1 << index);
         }
     });
 
-    // Formulardaten erstellen
-    const data = `temp_threshold=${encodeURIComponent(tempThreshold)}&red=${encodeURIComponent(red)}&green=${encodeURIComponent(green)}&blue=${encodeURIComponent(blue)}&hour=${encodeURIComponent(hour)}&minute=${encodeURIComponent(minute)}&days=${encodeURIComponent(days)}`;
+    const coolingButton = document.getElementById("toggleCooling").textContent.trim() === "Kühlung ausschalten";
+    const useLuminanceOrLightIntensity = document.getElementById('switchLightMode').textContent.trim() === "Verwende Lux";
+    const useDynamicLighting = document.getElementById('toggleLightOption').textContent.trim() === "Licht Option Aktivieren";
+    const moistureButton = document.getElementById("toggleMoisture").textContent.trim() === "Automatische Bewässerung ausschalten";
 
-    // POST-Request an den config_set_handler
+    const data = {
+        temp_threshold: tempThreshold,
+        moisture_threshold: moistureThreshold,
+        temp_enabled: coolingButton,
+        moisture_enabled: moistureButton,
+        light_intensity: lightIntensity,
+        luminance: luxValue,
+        use_luminance_or_light_intensity: useLuminanceOrLightIntensity,
+        use_dynamic_lightning: useDynamicLighting,
+        red: red,
+        green: green,
+        blue: blue,
+        hours: hours,
+        minutes: minutes,
+        days: days
+    };
+
     fetch("/config_set", {
         method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: data
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
     })
         .then(response => response.text())
         .then(result => {
             console.log("Antwort vom Server:", result);
-            alert(result); // Rückmeldung an den Benutzer
+            alert(result);
         })
         .catch(error => console.error("Fehler beim Senden der Konfiguration:", error));
 });
