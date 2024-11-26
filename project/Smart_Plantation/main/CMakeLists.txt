@@ -11,7 +11,7 @@ idf_component_register(
         "peripherals/wifi_plug.c"
         "peripherals/fan_control.c"
         "sensors/light_sensor.c"
-        "sensors/moisture_sensor.c"
+        "sensors/adc_read.c"
         INCLUDE_DIRS "."
         EMBED_FILES
         website/index.html

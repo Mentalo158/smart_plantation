@@ -9,7 +9,8 @@
 #include "backend/sntp_client.h"
 #include "common/config_storage.h"
 #include "sensors/light_sensor.h"
-#include "sensors/moisture_sensor.h"
+
+#include "sensors/adc_read.h"
 
 
 #define QUEUE_LENGTH 1
@@ -25,32 +26,22 @@ QueueHandle_t fan_queue;
 
 void moisture_task(void *pvParameters)
 {
-    // Initialisierung des I2C-Busses für den Feuchtigkeitssensor
-    if (init_soil_sensor_i2c(I2C_SCL_PIN_SOIL, I2C_SDA_PIN_SOIL) != ESP_OK)
-    {
-        ESP_LOGE("Moisture_Sensor", "Fehler bei der I2C-Initialisierung");
-        vTaskDelete(NULL); // Task beenden, falls Initialisierung fehlschlägt
-    }
+    adc_init(MOISTURE_CHANNEL, ADC_WIDTH_BIT_12, MOISTURE_ATTEN);
 
     while (1)
     {
-        // Feuchtigkeitswert in Prozent lesen
-        float moisture_value = readMoistureValueInPercent();
+        float moisturePercentage = adc_read_sensor(MOISTURE_CHANNEL, MOISTURE_ADC_MAX_VALUE);
 
-        if (moisture_value != -1.0f) // Überprüfen, ob der Sensorwert gültig ist
+        if (xQueueOverwrite(moistureDataQueue, &moisturePercentage) != pdPASS)
         {
-            // Feuchtigkeitswert in die Queue schreiben
-            if (xQueueOverwrite(moistureDataQueue, &moisture_value) != pdPASS)
-            {
-                ESP_LOGE("Moisture_Sensor", "Fehler beim Übertragen der Feuchtigkeitsdaten");
-            }
-            else
-            {
-                ESP_LOGI("Moisture_Sensor", "Feuchtigkeit: %.2f%%", moisture_value);
-            }
+            ESP_LOGE("ADC_Sensor", "Failed to overwrite ADC value in queue");
+        }
+        else
+        {
+            ESP_LOGI("ADC_Sensor", "ADC Value: %.2f%%", moisturePercentage);
         }
 
-        vTaskDelay(pdMS_TO_TICKS(1000)); // 1 Sekunde Verzögerung
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
 

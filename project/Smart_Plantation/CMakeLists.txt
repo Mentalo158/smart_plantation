@@ -4,7 +4,6 @@ cmake_minimum_required(VERSION 3.16)
 
 # Third party components
 set(EXTRA_COMPONENT_DIRS
-    "${CMAKE_SOURCE_DIR}/components/ESP32_I2C_Adafruit_STEMMA_Soil_Sensor-master"
     "${CMAKE_SOURCE_DIR}/components/bh1750"
     "${CMAKE_SOURCE_DIR}/components/i2cdev"
 )

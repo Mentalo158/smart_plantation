@@ -8,14 +8,16 @@
 // I2C Pin-Konfiguration für die Feuchtigkeits- und Lichtsensoren
 #define I2C_SCL_PIN 22 // Gemeinsamer SCL Pin für beide Sensoren
 #define I2C_SDA_PIN 21 // Gemeinsamer SDA Pin für beide Sensoren
-#define I2C_SCL_PIN_SOIL 19 // Neuer SCL Pin für den Feuchtigkeitssensor
-#define I2C_SDA_PIN_SOIL 18 // Neuer SDA Pin für den Feuchtigkeitssensor
+#define MOISTURE_ATTEN ADC_ATTEN_DB_2_5 // Dämpfung für den Bodenfeuchtesensor bis 1,9V
+#define MOISTURE_CHANNEL ADC1_CHANNEL_4 // GPIO 32
 
 #define DHT_GPIO_PIN 4 // GPIO Pin für den DHT Sensor
 
 #define LEDC_OUTPUT_R_PIN 27 // GPIO für die rote LED
 #define LEDC_OUTPUT_G_PIN 26 // GPIO für die grüne LED
 #define LEDC_OUTPUT_B_PIN 25 // GPIO für die blaue LED
+
+#define MOISTURE_ADC_MAX_VALUE 4095.0f
 
 // Deklaration der Queues für die Sensor-Daten
 extern QueueHandle_t moistureDataQueue; // Queue für Feuchtigkeitsdaten

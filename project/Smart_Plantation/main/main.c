@@ -24,8 +24,6 @@ void app_main()
     // Queue initialisieren
     init_queue();
 
-    //ESP_ERROR_CHECK(i2cdev_init());
-
     // WLAN-Verbindung herstellen
     wifi_connection();
     
