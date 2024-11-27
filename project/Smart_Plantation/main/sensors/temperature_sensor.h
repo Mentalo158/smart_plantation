@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "esp_log.h"
+#include "esp_err.h"
 
 // DHT-Sensor Typen
 #define DHT_TYPE_DHT11_SENSOR 11
@@ -24,6 +25,6 @@ typedef struct
  *
  * @return dht_data_t Struktur mit den gelesenen Werten.
  */
-dht_data_t read_temperature_sensor(int dhtGpio);
+esp_err_t read_temperature_sensor(int dhtGpio, dht_data_t *dhtData);
 
 #endif // TEMPERATURE_SENSOR_H

@@ -13,8 +13,94 @@ config WIFI_PASSWORD
         Enter the WiFi password for the SSID.
 
 config WIFI_PLUG_IP
-    string "WiFI Plug IP"
+    string "WiFi Plug IP"
+    default "192.168.100.161"
     help
-        Enter the IP adresse of your wifi plug.
+        Enter the IP address of your WiFi plug.
+
+endmenu
+
+menu "GPIO Configuration"
+
+menu "FAN GPIOs"
+    config FAN_PWM_GPIO
+        int "FAN PWM GPIO"
+        default 12
+        help
+            Enter the PWM GPIO pin of your fan.
+
+    config FAN_TACH_GPIO
+        int "FAN Tach GPIO"
+        default 18
+        help
+            Enter the TACH GPIO pin of your fan.
+
+    config FAN_CONTROL_GPIO
+        int "FAN Control GPIO"
+        default 0
+        help
+            Enter the Control GPIO pin of your fan.
+endmenu
+
+menu "LED GPIOs"
+    config LED_RED_GPIO
+        int "Red LED GPIO"
+        default 27
+        help
+            Enter the GPIO pin for the red channel of your RGB LED.
+
+    config LED_GREEN_GPIO
+        int "Green LED GPIO"
+        default 26
+        help
+            Enter the GPIO pin for the green channel of your RGB LED.
+
+    config LED_BLUE_GPIO
+        int "Blue LED GPIO"
+        default 25
+        help
+            Enter the GPIO pin for the blue channel of your RGB LED.
+endmenu
+
+menu "Temperature Sensor GPIO"
+    config TEMP_SENSOR_GPIO
+        int "Temp Sensor GPIO"
+        default 4
+        help
+            Enter the GPIO pin for your temperature sensor.
+endmenu
+
+menu "Moisture Sensor GPIO"
+    choice
+        prompt "Select ADC Channel for Moisture Sensor"
+        default MOISTURE_SENSOR_ADC_CHANNEL_4
+
+        config MOISTURE_SENSOR_ADC_CHANNEL_0
+            bool "ADC1_CHANNEL_0 (GPIO36)"
+
+        config MOISTURE_SENSOR_ADC_CHANNEL_3
+            bool "ADC1_CHANNEL_3 (GPIO39)"
+
+        config MOISTURE_SENSOR_ADC_CHANNEL_4
+            bool "ADC1_CHANNEL_4 (GPIO32)"
+
+        config MOISTURE_SENSOR_ADC_CHANNEL_5
+            bool "ADC1_CHANNEL_5 (GPIO33)"
+    endchoice
+endmenu
+
+menu "Light Sensor GPIOs"
+    config LIGHT_SENSOR_SCL
+        int "Light Sensor SCL"
+        default 22
+        help
+            Enter the SCL pin of your light sensor.
+
+    config LIGHT_SENSOR_SDA
+        int "Light Sensor SDA"
+        default 21
+        help
+            Enter the SDA pin of your light sensor.
+endmenu
 
 endmenu

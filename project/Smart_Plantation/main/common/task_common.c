@@ -52,17 +52,19 @@ void dhtTask(void *pvParameters)
 
     vTaskDelay(pdMS_TO_TICKS(2000));
 
+    dht_data_t dhtData;
+
     while (1)
     {
         // Lese die Daten vom DHT-Sensor
-        dht_data_t dhtData = read_temperature_sensor(DHT_GPIO_PIN);
-
-        // Schreibe die Temperatur und Feuchtigkeit in die Queue
-        if (xQueueOverwrite(dhtDataQueue, &dhtData) != pdPASS)
+        if (read_temperature_sensor(DHT_GPIO_PIN, &dhtData) == ESP_OK)
         {
-            ESP_LOGE("DHT_Sensor", "Failed to overwrite DHT data in queue");
+            // Schreibe die Temperatur und Feuchtigkeit in die Queue
+            if (xQueueOverwrite(dhtDataQueue, &dhtData) != pdPASS)
+            {
+                ESP_LOGE("DHT_Sensor", "Failed to overwrite DHT data in queue");
+            }
         }
-
         vTaskDelay(pdMS_TO_TICKS(5000));
     }
 }
@@ -139,11 +141,11 @@ void led_task(void *pvParameters)
 
 void time_sync_task(void *pvParameter)
 {
-    const TickType_t xDelay = 1000 / portTICK_PERIOD_MS; // 60 Sekunden
+    const TickType_t xDelay = 1000 / portTICK_PERIOD_MS; 
     for (;;)
     {
-        sntp_update_time(); // Aktualisiere die Zeit
-        vTaskDelay(xDelay); // Warte eine Minute
+        sntp_update_time(); 
+        vTaskDelay(xDelay); 
     }
 }
 
@@ -275,7 +277,7 @@ void fan_control_task(void *pvParameters)
                 else
                 {
                     // Temperatur unter dem Schwellenwert: Lüfter ausschalten
-                    fan_off(FAN_CONTROL_PIN);
+                    //fan_off(FAN_CONTROL_PIN);
                     printf("Lüfter gestoppt: Temperatur unter Schwellenwert (%.2f°C)\n", dhtData.temperature);
                 }
             }
