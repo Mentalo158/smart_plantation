@@ -17,6 +17,10 @@
 #define LEDC_OUTPUT_G_PIN 26 // GPIO für die grüne LED
 #define LEDC_OUTPUT_B_PIN 25 // GPIO für die blaue LED
 
+#define FAN_PWM_PIN 12
+#define FAN_TACH_PIN 18
+#define FAN_CONTROL_PIN 0
+
 #define MOISTURE_ADC_MAX_VALUE 4095.0f
 
 // Deklaration der Queues für die Sensor-Daten
@@ -25,6 +29,7 @@ extern QueueHandle_t lightDataQueue;    // Queue für Lichtdaten
 extern QueueHandle_t led_queue;         // Queue für LED-Daten
 extern QueueHandle_t pump_queue;
 extern QueueHandle_t fan_queue;
+extern QueueHandle_t fanSpeedQueue;
 
 /**
  * @brief Initialisiert die Queues.

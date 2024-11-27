@@ -23,6 +23,7 @@ QueueHandle_t lightDataQueue;
 QueueHandle_t led_queue;
 QueueHandle_t pump_queue;
 QueueHandle_t fan_queue;
+QueueHandle_t fanSpeedQueue;
 
 void moisture_task(void *pvParameters)
 {
@@ -216,10 +217,6 @@ void pump_control_task(void *pvParameter)
 
 void fan_control_task(void *pvParameters)
 {
-    int fan_pwm_pin = GPIO_NUM_12;    // PWM-Pin für die Lüftergeschwindigkeit
-    int fan_tach_pin = GPIO_NUM_18;   // Tachometer-Pin des Lüfters
-    int fan_control_pin = GPIO_NUM_0; // Steuer-Pin für den Transistor
-
     config_t initial_config;
     load_config(&initial_config);
 
@@ -227,9 +224,10 @@ void fan_control_task(void *pvParameters)
 
     // `temp_enabled` aus der Konfiguration interpretieren
     bool isFanEnabled = (initial_config.temp_enabled != 0);
+    const uint32_t pulses_per_revolution = 2;
 
     // Initialisiere den Lüfter mit den Pins
-    fan_init(fan_pwm_pin, fan_control_pin, fan_tach_pin);
+    fan_init(FAN_PWM_PIN, FAN_CONTROL_PIN, FAN_TACH_PIN);
 
     while (1)
     {
@@ -242,28 +240,59 @@ void fan_control_task(void *pvParameters)
 
         if (isFanEnabled)
         {
-            fan_on(fan_control_pin, 0);
+            // Lüfter einschalten mit initialem Speed (0% Duty Cycle)
+            fan_on(FAN_CONTROL_PIN, 0);
 
+            // RPM-Wert vom Lüfter abrufen
+            uint32_t rpm = fan_get_speed_rpm(pulses_per_revolution);
+
+            // RPM-Wert in die Queue senden (für Logging oder andere Zwecke)
+            if (xQueueSend(fanSpeedQueue, &rpm, pdMS_TO_TICKS(10)) != pdPASS)
+            {
+                ESP_LOGE("Lüfter", "Fehler beim Übertragen der Lüftergeschwindigkeit");
+            }
+
+            // Temperaturdaten aus der Queue abrufen
             if (xQueuePeek(dhtDataQueue, &dhtData, pdMS_TO_TICKS(100)) == pdTRUE)
             {
+                // Nur reagieren, wenn Temperatur den Schwellenwert überschreitet
                 if (dhtData.temperature >= initial_config.temp_threshold)
                 {
+                    // Differenz zur Schwellentemperatur berechnen
                     int temp_diff = dhtData.temperature - initial_config.temp_threshold;
 
+                    // Lüftergeschwindigkeit proportional zur Temperaturdifferenz setzen
                     int fan_speed = temp_diff * 10;
                     fan_speed = (fan_speed > 255) ? 255 : (fan_speed < 0 ? 0 : fan_speed);
 
+                    // PWM-Duty-Cycle entsprechend anpassen
                     fan_set_speed(fan_speed);
 
-                    printf("Lüftergeschwindigkeit: %d (Temperatur: %.2f°C)\n", fan_speed, dhtData.temperature);
+                    // Debug-Ausgabe der Lüftergeschwindigkeit und Temperatur
+                    printf("Lüftergeschwindigkeit: %d (Temperatur: %.2f°C, RPM: %ld)\n",
+                           fan_speed, dhtData.temperature, rpm);
                 }
+                else
+                {
+                    // Temperatur unter dem Schwellenwert: Lüfter ausschalten
+                    fan_off(FAN_CONTROL_PIN);
+                    printf("Lüfter gestoppt: Temperatur unter Schwellenwert (%.2f°C)\n", dhtData.temperature);
+                }
+            }
+            else
+            {
+                printf("Keine Temperaturdaten verfügbar, Lüfter deaktiviert.\n");
+                fan_off(FAN_CONTROL_PIN);
             }
         }
         else
         {
-            fan_off(fan_control_pin);
+            // Lüfter deaktivieren, wenn `isFanEnabled` false ist
+            fan_off(FAN_CONTROL_PIN);
             printf("Lüfter deaktiviert durch Konfiguration.\n");
         }
+
+        // Task verzögert um 3 Sekunden
         vTaskDelay(pdMS_TO_TICKS(3000));
     }
 }
@@ -322,5 +351,11 @@ void init_queue()
     fan_queue = xQueueCreate(QUEUE_LENGTH, sizeof(uint8_t)); 
     {
         ESP_LOGE("Task_Common", "Fan Queue creation failed!");
+    }
+
+    fanSpeedQueue = xQueueCreate(QUEUE_LENGTH, sizeof(uint32_t));
+    if (fanSpeedQueue == NULL)
+    {
+        ESP_LOGE("Task_Common", "Fan Queue Speed creation failed!");
     }
 }
