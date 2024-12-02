@@ -4,7 +4,8 @@
 #include "common/task_common.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
-#include "backend/wifi-server.h"
+#include "backend/http_server.h"
+#include "backend/wifi_connection.h"
 #include "driver/gpio.h"
 
 // Hauptanwendung

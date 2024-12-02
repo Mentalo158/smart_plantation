@@ -1,22 +1,9 @@
-#ifndef WIFI_SERVER_H
-#define WIFI_SERVER_H
+#ifndef HTTP_SERVER_H
+#define HTTP_SERVER_H
 
 #include "esp_err.h"
 #include "esp_http_server.h"
 #include "freertos/queue.h"
-
-/**
- * @brief WLAN-Ereignishandler.
- *
- * Diese Funktion behandelt verschiedene WLAN-Ereignisse wie
- * Verbindungsstatus und IP-Adressenvergabe.
- *
- * @param event_handler_arg Argument für den Ereignishandler (nicht verwendet).
- * @param event_base Basis des Ereignisses.
- * @param event_id ID des Ereignisses.
- * @param event_data Daten des Ereignisses.
- */
-void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data);
 
 /**
  * @brief Handler für HTML-Anfragen.
@@ -92,14 +79,6 @@ esp_err_t temperature_value_handler(httpd_req_t *req);
 esp_err_t light_sensor_value_handler(httpd_req_t *req);
 
 /**
- * @brief Stellt die Verbindung zum WLAN her.
- *
- * Diese Funktion initialisiert das WLAN, registriert die Ereignis-Handler
- * und stellt die Verbindung zum definierten WLAN her.
- */
-void wifi_connection(void);
-
-/**
  * @brief Startet den Webserver.
  *
  * Diese Funktion initialisiert und startet den HTTP-Server
@@ -109,4 +88,4 @@ void wifi_connection(void);
  */
 httpd_handle_t start_webserver(void);
 
-#endif // WIFI_SERVER_H
+#endif // HTTP_SERVER_H

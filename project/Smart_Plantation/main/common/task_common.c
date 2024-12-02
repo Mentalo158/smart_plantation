@@ -1,5 +1,5 @@
 #include "task_common.h"
-#include "backend/wifi-server.h"
+#include "backend/http_server.h"
 #include "backend/mdns_server.h"
 #include "sensors/temperature_sensor.h"
 #include "peripherals/led_rgb_control.h"
@@ -249,7 +249,7 @@ void fan_control_task(void *pvParameters)
             uint32_t rpm = fan_get_speed_rpm(pulses_per_revolution);
 
             // RPM-Wert in die Queue senden (für Logging oder andere Zwecke)
-            if (xQueueSend(fanSpeedQueue, &rpm, pdMS_TO_TICKS(10)) != pdPASS)
+            if (xQueueOverwrite (fanSpeedQueue, &rpm) != pdPASS)
             {
                 ESP_LOGE("Lüfter", "Fehler beim Übertragen der Lüftergeschwindigkeit");
             }
