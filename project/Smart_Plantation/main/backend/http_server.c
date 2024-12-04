@@ -59,6 +59,8 @@ extern QueueHandle_t lightDataQueue;
 extern QueueHandle_t led_queue;
 extern QueueHandle_t pump_queue;
 extern QueueHandle_t fan_queue;
+extern QueueHandle_t soil_queue;
+extern QueueHandle_t moisture_enabled_queue;
 
 esp_err_t http_handler(httpd_req_t *req)
 {
@@ -376,6 +378,14 @@ esp_err_t config_set_handler(httpd_req_t *req)
         return ESP_FAIL;
     }
 
+    uint8_t moisture_enabled_status = (new_config.moisture_enabled) ? 1 : 0;
+    if (xQueueSend(moisture_enabled_queue, &moisture_enabled_status, pdMS_TO_TICKS(10)) != pdTRUE)
+    {
+        ESP_LOGE("CONFIG_HANDLER", "Fehler beim Senden in die moisture_enabled_queue");
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+
     // LED-Werte in die LED-Queue schreiben
     led_color_t led_data;
     led_data.red = new_config.red;
@@ -385,7 +395,15 @@ esp_err_t config_set_handler(httpd_req_t *req)
     // Sende die LED-Daten an die Queue
     if (xQueueSend(led_queue, &led_data, pdMS_TO_TICKS(10)) != pdTRUE)
     {
-        printf("fehler beim senden in die led_queue");
+        ESP_LOGE("CONFIG_HANDLER", "Fehler beim Senden in die led_queue");
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+
+    uint8_t soil_value = new_config.moisture_threshold;
+    if (xQueueSend(soil_queue, &soil_value, pdMS_TO_TICKS(10))!= pdTRUE)
+    {
+        ESP_LOGE("CONFIG_HANDLER", "Fehler beim Senden in die soil_queue");
         httpd_resp_send_500(req);
         return ESP_FAIL;
     }

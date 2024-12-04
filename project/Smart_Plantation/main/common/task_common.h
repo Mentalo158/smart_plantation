@@ -30,6 +30,8 @@ extern QueueHandle_t led_queue;         // Queue für LED-Daten
 extern QueueHandle_t pump_queue;
 extern QueueHandle_t fan_queue;
 extern QueueHandle_t fanSpeedQueue;
+extern QueueHandle_t soil_queue;
+extern QueueHandle_t moisture_enabled_queue;
 
 /**
  * @brief Initialisiert die Queues.

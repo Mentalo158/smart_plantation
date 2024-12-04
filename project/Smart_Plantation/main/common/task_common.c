@@ -24,6 +24,8 @@ QueueHandle_t led_queue;
 QueueHandle_t pump_queue;
 QueueHandle_t fan_queue;
 QueueHandle_t fanSpeedQueue;
+QueueHandle_t soil_queue;
+QueueHandle_t moisture_enabled_queue;
 
 void moisture_task(void *pvParameters)
 {
@@ -35,14 +37,71 @@ void moisture_task(void *pvParameters)
 
         if (xQueueOverwrite(moistureDataQueue, &moisturePercentage) != pdPASS)
         {
-            ESP_LOGE("ADC_Sensor", "Failed to overwrite ADC value in queue");
+            ESP_LOGE("Moisture_Sensor", "Failed to overwrite ADC value in queue");
         }
         else
         {
-            ESP_LOGI("ADC_Sensor", "ADC Value: %.2f%%", moisturePercentage);
+            ESP_LOGI("Moisture_Sensor", "ADC Value: %.2f%%", moisturePercentage);
         }
 
         vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}
+
+void pump_water_based_on_soil_task(void *pvParameters)
+{
+    config_t config;
+    load_config(&config);
+
+    uint8_t soil_threshold = config.moisture_threshold;     // Initialer Schwellenwert
+    bool moisture_enabled = (config.moisture_enabled != 0); // Initialer Status aus der Konfiguration
+    float moisturePercentage = 0.0f;
+
+    // Einmalige Prüfung beim Start
+    if (moisture_enabled && xQueuePeek(moistureDataQueue, &moisturePercentage, 0) == pdTRUE)
+    {
+        if (moisturePercentage <= soil_threshold)
+        {
+            tasmota_toggle_power(2000);       // Pumpe für 2 Sekunden einschalten
+            vTaskDelay(pdMS_TO_TICKS(10000)); // Warte 10 Sekunden, um die Befeuchtung abzuschließen
+        }
+    }
+
+    while (1)
+    {
+        // Überprüfen, ob der Status geändert wurde
+        uint8_t moisture_enabled_flag;
+        if (xQueueReceive(moisture_enabled_queue, &moisture_enabled_flag, 0) == pdTRUE)
+        {
+            moisture_enabled = (moisture_enabled_flag != 0);
+        }
+
+        // Wenn die automatische Befeuchtung deaktiviert ist, weiter warten
+        if (!moisture_enabled)
+        {
+            vTaskDelay(pdMS_TO_TICKS(1000));
+            continue;
+        }
+
+        // Überprüfen, ob ein neuer Schwellenwert empfangen wurde
+        uint8_t new_threshold;
+        if (xQueueReceive(soil_queue, &new_threshold, 0) == pdTRUE)
+        {
+            soil_threshold = new_threshold;
+        }
+
+        // Überprüfen der aktuellen Bodenfeuchtigkeit
+        if (xQueuePeek(moistureDataQueue, &moisturePercentage, pdMS_TO_TICKS(100)) == pdTRUE)
+        {
+            if (moisturePercentage <= soil_threshold)
+            {
+                tasmota_toggle_power(2000);       // Pumpe für 2 Sekunden einschalten
+                vTaskDelay(pdMS_TO_TICKS(10000)); // Warte 10 Sekunden, um die Befeuchtung abzuschließen
+            }
+        }
+
+        // Warten, bevor der nächste Check durchgeführt wird
+        vTaskDelay(pdMS_TO_TICKS(3000));
     }
 }
 
@@ -71,10 +130,8 @@ void dhtTask(void *pvParameters)
 
 void light_sensor_task(void *pvParameters)
 {
-
-
-        // Versuche, den BH1750-Sensor mehrmals zu initialisieren
-        const int max_retries = 5; // Maximale Anzahl der Versuche
+    // Versuche, den BH1750-Sensor mehrmals zu initialisieren
+    const int max_retries = 5; // Maximale Anzahl der Versuche
     int retry_count = 0;
     esp_err_t init_status = ESP_FAIL;
 
@@ -242,14 +299,14 @@ void fan_control_task(void *pvParameters)
 
         if (isFanEnabled)
         {
-            // Lüfter einschalten mit initialem Speed (0% Duty Cycle)
+            // Lüfter einschalten (falls noch nicht aktiv)
             fan_on(FAN_CONTROL_PIN, 0);
 
             // RPM-Wert vom Lüfter abrufen
             uint32_t rpm = fan_get_speed_rpm(pulses_per_revolution);
 
             // RPM-Wert in die Queue senden (für Logging oder andere Zwecke)
-            if (xQueueOverwrite (fanSpeedQueue, &rpm) != pdPASS)
+            if (xQueueOverwrite(fanSpeedQueue, &rpm) != pdPASS)
             {
                 ESP_LOGE("Lüfter", "Fehler beim Übertragen der Lüftergeschwindigkeit");
             }
@@ -257,41 +314,31 @@ void fan_control_task(void *pvParameters)
             // Temperaturdaten aus der Queue abrufen
             if (xQueuePeek(dhtDataQueue, &dhtData, pdMS_TO_TICKS(100)) == pdTRUE)
             {
-                // Nur reagieren, wenn Temperatur den Schwellenwert überschreitet
-                if (dhtData.temperature >= initial_config.temp_threshold)
-                {
-                    // Differenz zur Schwellentemperatur berechnen
-                    int temp_diff = dhtData.temperature - initial_config.temp_threshold;
+                // Differenz zur Schwellentemperatur berechnen
+                int temp_diff = dhtData.temperature - initial_config.temp_threshold;
 
-                    // Lüftergeschwindigkeit proportional zur Temperaturdifferenz setzen
-                    int fan_speed = temp_diff * 10;
-                    fan_speed = (fan_speed > 255) ? 255 : (fan_speed < 0 ? 0 : fan_speed);
+                // Lüftergeschwindigkeit proportional zur Temperaturdifferenz setzen
+                int fan_speed = temp_diff * 10;
+                fan_speed = (fan_speed > 255) ? 255 : (fan_speed < 30 ? 30 : fan_speed); // Minimum 30, wenn der Lüfter an ist
 
-                    // PWM-Duty-Cycle entsprechend anpassen
-                    fan_set_speed(fan_speed);
+                // PWM-Duty-Cycle entsprechend anpassen
+                fan_set_speed(fan_speed);
 
-                    // Debug-Ausgabe der Lüftergeschwindigkeit und Temperatur
-                    printf("Lüftergeschwindigkeit: %d (Temperatur: %.2f°C, RPM: %ld)\n",
-                           fan_speed, dhtData.temperature, rpm);
-                }
-                else
-                {
-                    // Temperatur unter dem Schwellenwert: Lüfter ausschalten
-                    //fan_off(FAN_CONTROL_PIN);
-                    printf("Lüfter gestoppt: Temperatur unter Schwellenwert (%.2f°C)\n", dhtData.temperature);
-                }
+                // Debug-Ausgabe der Lüftergeschwindigkeit und Temperatur
+                printf("Lüftergeschwindigkeit: %d (Temperatur: %.2f°C, RPM: %ld)\n",
+                       fan_speed, dhtData.temperature, rpm);
             }
             else
             {
-                printf("Keine Temperaturdaten verfügbar, Lüfter deaktiviert.\n");
-                fan_off(FAN_CONTROL_PIN);
+                // Keine Temperaturdaten verfügbar, Geschwindigkeit beibehalten
+                printf("Keine Temperaturdaten verfügbar, Lüfter läuft weiter.\n");
             }
         }
         else
         {
             // Lüfter deaktivieren, wenn `isFanEnabled` false ist
             fan_off(FAN_CONTROL_PIN);
-            printf("Lüfter deaktiviert durch Konfiguration.\n");
+            printf("Lüfter deaktiviert durch Benutzer.\n");
         }
 
         // Task verzögert um 3 Sekunden
@@ -359,5 +406,17 @@ void init_queue()
     if (fanSpeedQueue == NULL)
     {
         ESP_LOGE("Task_Common", "Fan Queue Speed creation failed!");
+    }
+
+    soil_queue = xQueueCreate(QUEUE_LENGTH, sizeof(uint8_t));
+    if (soil_queue == NULL)
+    {
+        ESP_LOGE("Task_Common", "Soil Queue creation failed!");
+    }
+
+    moisture_enabled_queue = xQueueCreate(QUEUE_LENGTH, sizeof(uint8_t));
+    if (moisture_enabled_queue == NULL)
+    {
+        ESP_LOGE("Task_Common", "Moisture Enabled Queue creation failed!");
     }
 }
