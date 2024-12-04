@@ -401,9 +401,9 @@ esp_err_t config_set_handler(httpd_req_t *req)
     }
 
     uint8_t soil_value = new_config.moisture_threshold;
-    if (xQueueSend(soil_queue, &soil_value, pdMS_TO_TICKS(10))!= pdTRUE)
+    if (xQueueOverwrite(soil_queue, &soil_value) != pdPASS)
     {
-        ESP_LOGE("CONFIG_HANDLER", "Fehler beim Senden in die soil_queue");
+        ESP_LOGE("CONFIG_HANDLER", "Fehler beim Überschreiben der soil_queue");
         httpd_resp_send_500(req);
         return ESP_FAIL;
     }
