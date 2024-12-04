@@ -43,6 +43,8 @@ void init_queue();
  */
 void moisture_task(void *pvParameters);
 
+void pump_water_based_on_soil_task(void *pvParameters);
+
 /**
  * @brief Lichtsensor Task.
  *
