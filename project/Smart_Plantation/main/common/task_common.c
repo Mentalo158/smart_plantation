@@ -16,7 +16,7 @@
 #define QUEUE_LENGTH 1
 #define ITEM_SIZE sizeof(float)
 
-// Globales Handle für die ADC-Daten-Queue und DHT-Daten-Queue
+
 QueueHandle_t moistureDataQueue;
 QueueHandle_t dhtDataQueue;
 QueueHandle_t lightDataQueue;
@@ -53,54 +53,54 @@ void pump_water_based_on_soil_task(void *pvParameters)
     config_t config;
     load_config(&config);
 
-    uint8_t soil_threshold = config.moisture_threshold;     // Initialer Schwellenwert
-    bool moisture_enabled = (config.moisture_enabled != 0); // Initialer Status aus der Konfiguration
+    uint8_t soil_threshold = config.moisture_threshold;     
+    bool moisture_enabled = (config.moisture_enabled != 0); 
     float moisturePercentage = 0.0f;
 
-    // Einmalige Prüfung beim Start
+    
     if (moisture_enabled && xQueuePeek(moistureDataQueue, &moisturePercentage, 0) == pdTRUE)
     {
         if (moisturePercentage <= soil_threshold)
         {
-            tasmota_toggle_power(2000);       // Pumpe für 2 Sekunden einschalten
-            vTaskDelay(pdMS_TO_TICKS(10000)); // Warte 10 Sekunden, um die Befeuchtung abzuschließen
+            tasmota_toggle_power(2000);       
+            vTaskDelay(pdMS_TO_TICKS(10000)); 
         }
     }
 
     while (1)
     {
-        // Überprüfen, ob der Status geändert wurde
+        
         uint8_t moisture_enabled_flag;
         if (xQueueReceive(moisture_enabled_queue, &moisture_enabled_flag, 0) == pdTRUE)
         {
             moisture_enabled = (moisture_enabled_flag != 0);
         }
 
-        // Wenn die automatische Befeuchtung deaktiviert ist, weiter warten
+        
         if (!moisture_enabled)
         {
             vTaskDelay(pdMS_TO_TICKS(1000));
             continue;
         }
 
-        // Überprüfen, ob ein neuer Schwellenwert empfangen wurde
+        
         uint8_t new_threshold;
         if (xQueueReceive(soil_queue, &new_threshold, 0) == pdTRUE)
         {
             soil_threshold = new_threshold;
         }
 
-        // Überprüfen der aktuellen Bodenfeuchtigkeit
+        
         if (xQueuePeek(moistureDataQueue, &moisturePercentage, pdMS_TO_TICKS(100)) == pdTRUE)
         {
             if (moisturePercentage <= soil_threshold)
             {
-                tasmota_toggle_power(2000);       // Pumpe für 2 Sekunden einschalten
-                vTaskDelay(pdMS_TO_TICKS(10000)); // Warte 10 Sekunden, um die Befeuchtung abzuschließen
+                tasmota_toggle_power(2000);       
+                vTaskDelay(pdMS_TO_TICKS(10000)); 
             }
         }
 
-        // Warten, bevor der nächste Check durchgeführt wird
+        
         vTaskDelay(pdMS_TO_TICKS(3000));
     }
 }
@@ -115,10 +115,10 @@ void dhtTask(void *pvParameters)
 
     while (1)
     {
-        // Lese die Daten vom DHT-Sensor
+        
         if (read_temperature_sensor(DHT_GPIO_PIN, &dhtData) == ESP_OK)
         {
-            // Schreibe die Temperatur und Feuchtigkeit in die Queue
+            
             if (xQueueOverwrite(dhtDataQueue, &dhtData) != pdPASS)
             {
                 ESP_LOGE("DHT_Sensor", "Failed to overwrite DHT data in queue");
@@ -130,8 +130,8 @@ void dhtTask(void *pvParameters)
 
 void light_sensor_task(void *pvParameters)
 {
-    // Versuche, den BH1750-Sensor mehrmals zu initialisieren
-    const int max_retries = 5; // Maximale Anzahl der Versuche
+    
+    const int max_retries = 5; 
     int retry_count = 0;
     esp_err_t init_status = ESP_FAIL;
 
@@ -146,7 +146,7 @@ void light_sensor_task(void *pvParameters)
         else
         {
             ESP_LOGW("LightSensor", "Sensorinitialisierung fehlgeschlagen (Versuch %d von %d).", retry_count + 1, max_retries);
-            vTaskDelay(pdMS_TO_TICKS(1000)); // 1 Sekunde warten vor erneutem Versuch
+            vTaskDelay(pdMS_TO_TICKS(1000)); 
         }
         retry_count++;
     }
@@ -154,22 +154,22 @@ void light_sensor_task(void *pvParameters)
     if (init_status != ESP_OK)
     {
         ESP_LOGE("LightSensor", "Sensorinitialisierung endgültig fehlgeschlagen nach %d Versuchen.", max_retries);
-        vTaskDelete(NULL); // Task beenden, wenn Sensor nicht initialisiert werden kann
+        vTaskDelete(NULL); 
         return;
     }
 
     while (1)
     {
-        // Holen des aktuellen Lichtstatus
+        
         LightState state = get_light_state();
 
-        // Übertragen des Lichtwerts in die Queue
+        
         if (xQueueOverwrite(lightDataQueue, &state) != pdPASS)
         {
             ESP_LOGE("LightSensor", "Fehler beim Übertragen der Lichtdaten");
         }
 
-        // Sensor alle 1000ms abfragen
+        
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
@@ -186,10 +186,10 @@ void led_task(void *pvParameters)
 
     while (1)
     {
-        // Warte, bis neue RGB-Daten in die Warteschlange eingehen
+        
         if (xQueueReceive(led_queue, &led_data, portMAX_DELAY))
         {
-            // LED-Werte setzen
+            
             rgb_set_color(led_data.red, led_data.green, led_data.blue);
             printf("LED updated: R=%d, G=%d, B=%d\n", led_data.red, led_data.green, led_data.blue);
         }
@@ -211,41 +211,39 @@ void pump_control_task(void *pvParameter)
     pump_times config_data;
     bool pump_triggered_today = false;
 
-    // Initialkonfiguration aus NVS laden
+    
     config_t initial_config;
     load_config(&initial_config);
 
-    // Die Konfiguration auf die entsprechenden Daten setzen (7 Tage, Stunden und Minuten)
+    
     for (int i = 0; i < 7; i++)
     {
-        config_data.hours[i] = initial_config.hours[i];     // Stunden für jeden Wochentag
-        config_data.minutes[i] = initial_config.minutes[i]; // Minuten für jeden Wochentag
+        config_data.hours[i] = initial_config.hours[i];     
+        config_data.minutes[i] = initial_config.minutes[i]; 
     }
-    config_data.days = initial_config.days; // Bitmaske der aktiven Tage
-
-    // TODO: Fehlerbehandlung bei Task-Fehlern einfügen
+    config_data.days = initial_config.days; 
 
     while (1)
     {
-        // Warten, bis neue Konfigurationsdaten in die Queue geschrieben werden
+        
         if (xQueueReceive(pump_queue, &config_data, pdMS_TO_TICKS(100)))
         {
             ESP_LOGI("PUMP_TASK", "Neue Konfiguration empfangen");
 
-            // Täglichen Trigger zurücksetzen bei neuer Konfiguration
+            
             pump_triggered_today = false;
         }
 
-        // Aktuelle Zeit prüfen
+        
         time_t now = get_current_time();
         struct tm timeinfo;
         localtime_r(&now, &timeinfo);
 
-        int current_day = get_current_day_of_week(); // Aktuellen Wochentag ermitteln
+        int current_day = get_current_day_of_week(); 
         bool should_trigger_today = false;
 
-        // Prüfen, ob die Pumpe für den aktuellen Tag aktiviert werden soll
-        if ((config_data.days & (1 << current_day))) // Prüfen, ob der aktuelle Tag aktiviert ist
+        
+        if ((config_data.days & (1 << current_day))) 
         {
             if (timeinfo.tm_hour == config_data.hours[current_day] && timeinfo.tm_min == config_data.minutes[current_day])
             {
@@ -253,24 +251,24 @@ void pump_control_task(void *pvParameter)
             }
         }
 
-        // Wenn die Bedingungen erfüllt sind und die Pumpe noch nicht für den heutigen Tag ausgelöst wurde
+        
         if (should_trigger_today && !pump_triggered_today)
         {
             ESP_LOGI("PUMP_TASK", "Pumpe aktivieren: Geplante Zeit erreicht.");
-            tasmota_toggle_power(2000); // Beispielwert für die Dauer
+            tasmota_toggle_power(2000); 
 
-            // Setze den Trigger für den heutigen Tag
+            
             pump_triggered_today = true;
         }
 
-        // Täglichen Auslöser um Mitternacht zurücksetzen
+        
         if (timeinfo.tm_hour == 0 && timeinfo.tm_min == 0)
         {
             pump_triggered_today = false;
         }
 
-        // Warten, bis zur nächsten Minute (um CPU zu schonen)
-        vTaskDelay(60000 / portTICK_PERIOD_MS); // Wartezeit für eine Minute
+        
+        vTaskDelay(60000 / portTICK_PERIOD_MS); 
     }
 }
 
@@ -281,16 +279,16 @@ void fan_control_task(void *pvParameters)
 
     dht_data_t dhtData;
 
-    // `temp_enabled` aus der Konfiguration interpretieren
+    
     bool isFanEnabled = (initial_config.temp_enabled != 0);
     const uint32_t pulses_per_revolution = 2;
 
-    // Initialisiere den Lüfter mit den Pins
+    
     fan_init(FAN_PWM_PIN, FAN_CONTROL_PIN, FAN_TACH_PIN);
 
     while (1)
     {
-        // Aktualisiere `isFanEnabled` aus der Queue, wenn vorhanden
+        
         uint8_t tempEnabledFlag;
         if (xQueueReceive(fan_queue, &tempEnabledFlag, pdMS_TO_TICKS(100)))
         {
@@ -299,56 +297,56 @@ void fan_control_task(void *pvParameters)
 
         if (isFanEnabled)
         {
-            // Lüfter einschalten (falls noch nicht aktiv)
+            
             fan_on(FAN_CONTROL_PIN, 0);
 
-            // RPM-Wert vom Lüfter abrufen
+            
             uint32_t rpm = fan_get_speed_rpm(pulses_per_revolution);
 
-            // RPM-Wert in die Queue senden (für Logging oder andere Zwecke)
+            
             if (xQueueOverwrite(fanSpeedQueue, &rpm) != pdPASS)
             {
                 ESP_LOGE("Lüfter", "Fehler beim Übertragen der Lüftergeschwindigkeit");
             }
 
-            // Temperaturdaten aus der Queue abrufen
+            
             if (xQueuePeek(dhtDataQueue, &dhtData, pdMS_TO_TICKS(100)) == pdTRUE)
             {
-                // Differenz zur Schwellentemperatur berechnen
+                
                 int temp_diff = dhtData.temperature - initial_config.temp_threshold;
 
-                // Lüftergeschwindigkeit proportional zur Temperaturdifferenz setzen
+                
                 int fan_speed = temp_diff * 10;
-                fan_speed = (fan_speed > 255) ? 255 : (fan_speed < 30 ? 30 : fan_speed); // Minimum 30, wenn der Lüfter an ist
+                fan_speed = (fan_speed > 255) ? 255 : (fan_speed < 30 ? 30 : fan_speed); 
 
-                // PWM-Duty-Cycle entsprechend anpassen
+                
                 fan_set_speed(fan_speed);
 
-                // Debug-Ausgabe der Lüftergeschwindigkeit und Temperatur
+                
                 printf("Lüftergeschwindigkeit: %d (Temperatur: %.2f°C, RPM: %ld)\n",
                        fan_speed, dhtData.temperature, rpm);
             }
             else
             {
-                // Keine Temperaturdaten verfügbar, Geschwindigkeit beibehalten
+                
                 printf("Keine Temperaturdaten verfügbar, Lüfter läuft weiter.\n");
             }
         }
         else
         {
-            // Lüfter deaktivieren, wenn `isFanEnabled` false ist
+            
             fan_off(FAN_CONTROL_PIN);
             printf("Lüfter deaktiviert durch Benutzer.\n");
         }
 
-        // Task verzögert um 3 Sekunden
+        
         vTaskDelay(pdMS_TO_TICKS(3000));
     }
 }
 
 void webServerTask(void *pvParameters)
 {
-    // Webserver starten
+    
     httpd_handle_t server = start_webserver();
     if (server == NULL)
     {
@@ -366,26 +364,26 @@ void webServerTask(void *pvParameters)
 
 void init_queue()
 {
-    moistureDataQueue = xQueueCreate(QUEUE_LENGTH, sizeof(float)); // Feuchtigkeitswerte als float
+    moistureDataQueue = xQueueCreate(QUEUE_LENGTH, sizeof(float)); 
     if (moistureDataQueue == NULL)
     {
         ESP_LOGE("Task_Common", "ADC Queue creation failed!");
     }
 
-    dhtDataQueue = xQueueCreate(QUEUE_LENGTH, sizeof(dht_data_t)); // DHT Daten
+    dhtDataQueue = xQueueCreate(QUEUE_LENGTH, sizeof(dht_data_t)); 
     if (dhtDataQueue == NULL)
     {
         ESP_LOGE("Task_Common", "DHT Queue creation failed!");
     }
 
-    // Für LightState Struktur
-    lightDataQueue = xQueueCreate(QUEUE_LENGTH, sizeof(LightState)); // Queue für Lichtwerte
+    
+    lightDataQueue = xQueueCreate(QUEUE_LENGTH, sizeof(LightState)); 
     if (lightDataQueue == NULL)
     {
         ESP_LOGE("Task_Common", "Light Sensor Queue creation failed!");
     }
 
-    led_queue = xQueueCreate(QUEUE_LENGTH, sizeof(led_color_t)); // Queue für LED Farben
+    led_queue = xQueueCreate(QUEUE_LENGTH, sizeof(led_color_t)); 
     if (led_queue == NULL)
     {
         ESP_LOGE("Task_Common", "LED Queue creation failed!");

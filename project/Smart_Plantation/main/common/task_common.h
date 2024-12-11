@@ -33,14 +33,8 @@ extern QueueHandle_t fanSpeedQueue;
 extern QueueHandle_t soil_queue;
 extern QueueHandle_t moisture_enabled_queue;
 
-/**
- * @brief Initialisiert die Queues.
- */
 void init_queue();
 
-/**
- * @brief Feuchtigkeitssensor Task.
- */
 void moisture_task(void *pvParameters);
 
 void pump_water_based_on_soil_task(void *pvParameters);
@@ -53,14 +47,8 @@ void pump_water_based_on_soil_task(void *pvParameters);
  */
 void light_sensor_task(void *pvParameters);
 
-/**
- * @brief DHT Sensor Task.
- */
 void dhtTask(void *pvParameters);
 
-/**
- * @brief LED Task.
- */
 void led_task(void *pvParameters);
 
 void pump_control_task(void *pvParameter);

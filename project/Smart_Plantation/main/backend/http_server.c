@@ -17,33 +17,9 @@
 #include "cJSON.h"
 #include "sensors/light_sensor.h"
 
-// TODO Handler aufteilen in peri_handlers und sensor_handlers
-// TODO COOLDOWN für die Steckdose anpassen
+int64_t last_plug_activation = 0;
+const int64_t PLUG_COOLDOWN = 6000000;
 
-int64_t last_plug_activation = 0;      // Speichert den letzten Aktivierungszeitpunkt in Mikrosekunden
-const int64_t PLUG_COOLDOWN = 6000000; // 3 Sekunden in Mikrosekunden (Cooldown-Zeitraum)
-
-/**
- * @brief Eingebettete binäre Daten für verschiedene Ressourcen.
- *
- * Diese externen Variablen referenzieren die Start- und Endpunkte
- * von eingebetteten binären Daten, die in der Anwendung verwendet
- * werden. Die Daten umfassen HTML, CSS, JavaScript und Favicon-Ressourcen.
- *
- * Jede Datei benötigt sowohl einen Start- als auch einen Endzeiger,
- * um den vollständigen Bereich der eingebetteten Daten im Speicher
- * korrekt zu definieren.
- * - Der Startzeiger (@c _start) zeigt auf den Beginn der Datei im
- *   Speicher, wodurch der Zugriff auf die Daten ermöglicht wird.
- * - Der Endzeiger (@c _end) definiert das Ende der Datei, was wichtig
- *   ist, um die Größe der Daten zu bestimmen und sicherzustellen,
- *   dass beim Zugriff auf die Daten keine unzulässigen Speicherbereiche
- *   überschritten werden.
- *
- * @note Jede Variable wird mit einer speziellen Assemblierungsanweisung
- * (@c asm) versehen, um sicherzustellen, dass die richtigen
- * Symbole im Binary verfügbar sind.
- */
 extern const uint8_t index_html_start[] asm("_binary_index_html_start");
 extern const uint8_t index_html_end[] asm("_binary_index_html_end");
 extern const uint8_t app_css_start[] asm("_binary_app_css_start");
@@ -97,7 +73,7 @@ esp_err_t moisture_value_handler(httpd_req_t *req)
     if (xQueuePeek(moistureDataQueue, &moisturePercentage, 0) == pdTRUE)
     {
         char response[128];
-        // Gebe den Feuchtigkeitswert zurück
+        
         snprintf(response, sizeof(response), "Bodenfeuchte: %.2f%%", moisturePercentage);
         httpd_resp_set_type(req, "text/plain");
         httpd_resp_send(req, response, strlen(response));
@@ -135,22 +111,22 @@ esp_err_t light_sensor_value_handler(httpd_req_t *req)
 {
     LightState lightState;
 
-    // Versuche, den aktuellen LightState aus der Queue zu holen
+    
     if (xQueuePeek(lightDataQueue, &lightState, 0) == pdTRUE)
     {
-        // Erstelle eine Antwort im gewünschten Format
+        
         char response[128];
         snprintf(response, sizeof(response),
                  "Lichtintensität: %.2f%%\nLux-Wert: %u",
-                 lightState.light_intensity, lightState.lux_value); // Gebe beide Werte aus
+                 lightState.light_intensity, lightState.lux_value); 
 
-        // Setze den Antworttyp und sende die Antwort
+        
         httpd_resp_set_type(req, "text/plain");
         httpd_resp_send(req, response, strlen(response));
     }
     else
     {
-        // Falls kein Wert in der Queue ist, sende einen 404-Fehler
+        
         httpd_resp_send_404(req);
     }
 
@@ -160,9 +136,9 @@ esp_err_t light_sensor_value_handler(httpd_req_t *req)
 esp_err_t config_get_handler(httpd_req_t *req)
 {
     config_t config;
-    load_config(&config); // Lade die Konfiguration aus dem NVS
+    load_config(&config); 
 
-    // Erstelle die JSON-Antwort
+    
     cJSON *root = cJSON_CreateObject();
     if (root == NULL)
     {
@@ -182,11 +158,11 @@ esp_err_t config_get_handler(httpd_req_t *req)
     cJSON_AddBoolToObject(root, "use_luminance_or_light_intensity", config.use_luminance_or_light_intensity);
     cJSON_AddBoolToObject(root, "use_dynamic_lightning", config.use_dynamic_lightning);
 
-    // Füge die fehlenden Werte hinzu
-    cJSON_AddNumberToObject(root, "luminance", config.luminance);             // Lux-Wert
-    cJSON_AddNumberToObject(root, "light_intensity", config.light_intensity); // Lichtintensität
+    
+    cJSON_AddNumberToObject(root, "luminance", config.luminance);             
+    cJSON_AddNumberToObject(root, "light_intensity", config.light_intensity); 
 
-    // Times (Stunden und Minuten)
+    
     cJSON *times = cJSON_CreateArray();
     if (times == NULL)
     {
@@ -205,7 +181,7 @@ esp_err_t config_get_handler(httpd_req_t *req)
     }
     cJSON_AddItemToObject(root, "times", times);
 
-    // Sende die JSON-Antwort
+    
     char *json_response = cJSON_PrintUnformatted(root);
     if (json_response == NULL)
     {
@@ -216,7 +192,7 @@ esp_err_t config_get_handler(httpd_req_t *req)
     }
     httpd_resp_send(req, json_response, strlen(json_response));
 
-    // Speicher freigeben
+    
     cJSON_Delete(root);
     free(json_response);
 
@@ -239,21 +215,21 @@ esp_err_t config_set_handler(httpd_req_t *req)
 
     content[recv_size] = '\0';
 
-    // Log die empfangenen Daten
+    
     ESP_LOGI("CONFIG_HANDLER", "Empfangene POST-Daten: %s", content);
 
-    // Parse das JSON
+    
     cJSON *json = cJSON_Parse(content);
     if (json == NULL)
     {
         ESP_LOGE("CONFIG_HANDLER", "Fehler beim Parsen des JSON.");
-        httpd_resp_send_500(req); // Bad request
+        httpd_resp_send_500(req); 
         return ESP_FAIL;
     }
 
     config_t new_config = {0};
 
-    // Extrahiere die Parameter aus dem JSON
+    
     cJSON *temp_threshold = cJSON_GetObjectItemCaseSensitive(json, "temp_threshold");
     cJSON *moisture_threshold = cJSON_GetObjectItemCaseSensitive(json, "moisture_threshold");
     cJSON *moisture_enabled = cJSON_GetObjectItemCaseSensitive(json, "moisture_enabled");
@@ -267,11 +243,11 @@ esp_err_t config_set_handler(httpd_req_t *req)
     cJSON *use_luminance_or_light_intensity = cJSON_GetObjectItemCaseSensitive(json, "use_luminance_or_light_intensity");
     cJSON *use_dynamic_lightning = cJSON_GetObjectItemCaseSensitive(json, "use_dynamic_lightning");
 
-    // Füge die fehlenden Werte hinzu
+    
     cJSON *luminance = cJSON_GetObjectItemCaseSensitive(json, "luminance");
     cJSON *light_intensity = cJSON_GetObjectItemCaseSensitive(json, "light_intensity");
 
-    // Überprüfen und Zuweisen der Werte
+    
     if (cJSON_IsNumber(temp_threshold))
     {
         new_config.temp_threshold = temp_threshold->valueint;
@@ -313,7 +289,7 @@ esp_err_t config_set_handler(httpd_req_t *req)
         new_config.use_dynamic_lightning = cJSON_IsTrue(use_dynamic_lightning);
     }
 
-    // Setze Luminance und Lichtintensität, falls vorhanden
+    
     if (cJSON_IsNumber(luminance))
     {
         new_config.luminance = luminance->valueint;
@@ -323,7 +299,7 @@ esp_err_t config_set_handler(httpd_req_t *req)
         new_config.light_intensity = light_intensity->valueint;
     }
 
-    // Extrahiere Stunden und Minuten
+    
     if (cJSON_IsArray(hours) && cJSON_IsArray(minutes))
     {
         int i = 0;
@@ -349,20 +325,20 @@ esp_err_t config_set_handler(httpd_req_t *req)
         }
     }
 
-    // Neue Konfigurationsdaten für die Queue vorbereiten
+    
     pump_times pump_config_data;
 
-    // Stunden und Minuten für jeden Wochentag setzen
+    
     for (int i = 0; i < 7; i++)
     {
-        pump_config_data.hours[i] = new_config.hours[i];     // Stunden für jeden Wochentag
-        pump_config_data.minutes[i] = new_config.minutes[i]; // Minuten für jeden Wochentag
+        pump_config_data.hours[i] = new_config.hours[i];     
+        pump_config_data.minutes[i] = new_config.minutes[i]; 
     }
 
-    // Wochentage (Bitmaske) setzen
+    
     pump_config_data.days = new_config.days;
 
-    // Konfigurationsdaten in die Queue schreiben (falls sie voll ist, wird sie überschrieben)
+    
     if (xQueueOverwrite(pump_queue, &pump_config_data) != pdTRUE)
     {
         ESP_LOGE("CONFIG_HANDLER", "Fehler beim Überschreiben in config_queue");
@@ -386,13 +362,13 @@ esp_err_t config_set_handler(httpd_req_t *req)
         return ESP_FAIL;
     }
 
-    // LED-Werte in die LED-Queue schreiben
+    
     led_color_t led_data;
     led_data.red = new_config.red;
     led_data.green = new_config.green;
     led_data.blue = new_config.blue;
 
-    // Sende die LED-Daten an die Queue
+    
     if (xQueueSend(led_queue, &led_data, pdMS_TO_TICKS(10)) != pdTRUE)
     {
         ESP_LOGE("CONFIG_HANDLER", "Fehler beim Senden in die led_queue");
@@ -408,13 +384,13 @@ esp_err_t config_set_handler(httpd_req_t *req)
         return ESP_FAIL;
     }
 
-    // Konfigurationsdaten in NVS speichern
+    
     save_config(&new_config);
 
-    // Rückmeldung an den Webserver
+    
     httpd_resp_send(req, "Konfiguration erfolgreich aktualisiert", HTTPD_RESP_USE_STRLEN);
 
-    // JSON-Objekt freigeben
+    
     cJSON_Delete(json);
 
     return ESP_OK;
@@ -424,13 +400,13 @@ esp_err_t wifi_plug_switch_handler(httpd_req_t *req)
 {
     int64_t current_time = esp_timer_get_time();
 
-    // Prüfen, ob 3 Sekunden vergangen sind
+    
     if (current_time - last_plug_activation >= PLUG_COOLDOWN)
     {
-        // Wenn ja, dann die Steckdose umschalten
-        if (tasmota_toggle_power(4000) == ESP_OK) // 2000 ms = 2 Sekunden
+        
+        if (tasmota_toggle_power(4000) == ESP_OK) 
         {
-            last_plug_activation = current_time; // Update den letzten Aktivierungszeitpunkt
+            last_plug_activation = current_time; 
             httpd_resp_sendstr(req, "Steckdose für 2 Sekunden eingeschaltet.");
             return ESP_OK;
         }
@@ -442,7 +418,7 @@ esp_err_t wifi_plug_switch_handler(httpd_req_t *req)
     }
     else
     {
-        // Wenn weniger als 3 Sekunden vergangen sind, gebe eine Fehlermeldung zurück
+        
         httpd_resp_sendstr(req, "Bitte warten, bevor Sie erneut klicken.");
         return ESP_OK;
     }
@@ -502,7 +478,7 @@ httpd_uri_t config_set_uri = {
     .handler = config_set_handler,
     .user_ctx = NULL};
 
-// URI-Handler für die Steckdose
+
 httpd_uri_t wifi_plug_switch_uri = {
     .uri = "/plug_switch",
     .method = HTTP_GET,
@@ -511,13 +487,13 @@ httpd_uri_t wifi_plug_switch_uri = {
 
 httpd_handle_t start_webserver(void)
 {
-    httpd_handle_t http_server = NULL;              // Handle für den HTTP-Server
-    httpd_config_t config = HTTPD_DEFAULT_CONFIG(); // Standardkonfiguration für den HTTP-Server
+    httpd_handle_t http_server = NULL;              
+    httpd_config_t config = HTTPD_DEFAULT_CONFIG(); 
     config.max_uri_handlers = 20;
-    // Startet den HTTP-Server
+    
     if (httpd_start(&http_server, &config) == ESP_OK)
     {
-        // Registriere die Handlers
+        
         httpd_register_uri_handler(http_server, &http_uri);
         httpd_register_uri_handler(http_server, &css_uri);
         httpd_register_uri_handler(http_server, &js_uri);
@@ -529,9 +505,9 @@ httpd_handle_t start_webserver(void)
         httpd_register_uri_handler(http_server, &config_set_uri);
         httpd_register_uri_handler(http_server, &wifi_plug_switch_uri);
 
-        return http_server; // Gibt das Handle des gestarteten HTTP-Servers zurück
+        return http_server; 
     }
 
-    ESP_LOGI("WebServer", "Error starting http_server!"); // Fehler beim Starten des Servers
-    return NULL;                                          // Gibt NULL zurück, wenn der Server nicht gestartet werden konnte
+    ESP_LOGI("WebServer", "Error starting http_server!"); 
+    return NULL;                                          
 }

@@ -15,16 +15,6 @@ typedef struct
     float temperature; ///< Temperatur in Grad Celsius
 } dht_data_t;
 
-/**
- * @brief Liest die Temperatur und Feuchtigkeit vom DHT-Sensor.
- *
- * Diese Funktion kommuniziert mit dem angegebenen DHT-Sensor, um
- * die Luftfeuchtigkeit und Temperatur zu erfassen.
- *
- * @param dhtGpio Der GPIO-Pin, an dem der DHT-Sensor angeschlossen ist.
- *
- * @return dht_data_t Struktur mit den gelesenen Werten.
- */
 esp_err_t read_temperature_sensor(int dhtGpio, dht_data_t *dhtData);
 
 #endif // TEMPERATURE_SENSOR_H
