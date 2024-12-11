@@ -3,7 +3,6 @@
 
 void start_mdns(const char *hostname, const char *instance_name, const char *service_type, const char *protocol, uint16_t port)
 {
-    // Initialisiere mDNS
     mdns_init();
     mdns_hostname_set(hostname);
     mdns_instance_name_set(instance_name);
@@ -11,7 +10,6 @@ void start_mdns(const char *hostname, const char *instance_name, const char *ser
     mdns_txt_item_t *txt = NULL;
     size_t num_items = 0;
 
-    // Füge den mDNS-Dienst hinzu
     esp_err_t err = mdns_service_add(instance_name, service_type, protocol, port, txt, num_items);
     if (err)
     {
