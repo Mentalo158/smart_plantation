@@ -37,6 +37,14 @@ void init_queue();
 
 void moisture_task(void *pvParameters);
 
+void pump_water_based_on_soil_task(void *pvParameters);
+
+/**
+ * @brief Lichtsensor Task.
+ *
+ * Diese Funktion liest kontinuierlich Lichtwerte vom BH1750-Sensor
+ * und schreibt diese Werte in eine Queue.
+ */
 void light_sensor_task(void *pvParameters);
 
 void dhtTask(void *pvParameters);
