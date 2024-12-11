@@ -68,7 +68,7 @@ LightState get_light_state()
     else
     {
         ESP_LOGE(TAG, "Fehler beim Lesen des BH1750 Sensors!");
-        state.lux_value = 0;
+        state.lux_value = -1;
         state.light_intensity = 0.0f;
     }
 

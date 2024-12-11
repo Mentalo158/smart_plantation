@@ -33,6 +33,11 @@ extern QueueHandle_t fanSpeedQueue;
 extern QueueHandle_t soil_queue;
 extern QueueHandle_t moisture_enabled_queue;
 
+extern QueueHandle_t dynamicLightQueue;
+extern QueueHandle_t luxOrIntensityQueue;
+extern QueueHandle_t lightIntensityThresholdQueue;
+extern QueueHandle_t lightLuxThresholdQueue;
+
 void init_queue();
 
 void moisture_task(void *pvParameters);
