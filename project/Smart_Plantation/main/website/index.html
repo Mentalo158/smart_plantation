@@ -29,11 +29,11 @@
             <div id="lightDisplay" hx-get="/light" hx-trigger="load, every 1s" hx-swap="innerHTML">
                 Lichtintensität: - %
             </div>
-            <div id="tasmotaControl">
-                <button hx-get="/plug_switch" hx-trigger="click" hx-swap="innerHTML">
-                    Steckdose für 2 Sekunden einschalten
-                </button>
-            </div>
+
+            <button id="tasmotaControl" hx-get="/plug_switch" hx-trigger="click" hx-swap="innerHTML">
+                Steckdose für 2 Sekunden einschalten
+            </button>
+
         </div>
 
         <div class="peripherals-container">
