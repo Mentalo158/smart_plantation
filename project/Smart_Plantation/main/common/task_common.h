@@ -32,6 +32,7 @@ extern QueueHandle_t fan_queue;
 extern QueueHandle_t fanSpeedQueue;
 extern QueueHandle_t soil_queue;
 extern QueueHandle_t moisture_enabled_queue;
+extern QueueHandle_t tempThresholdQueue;
 
 void init_queue();
 
