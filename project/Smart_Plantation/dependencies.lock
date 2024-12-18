@@ -23,7 +23,7 @@ dependencies:
   idf:
     source:
       type: idf
-    version: 5.3.1
+    version: 5.3.2
   zorxx/dht:
     component_hash: 6a5e699b15509d99b90352694e23beb6646855486eb3bafefd1d50058d474e98
     dependencies: []

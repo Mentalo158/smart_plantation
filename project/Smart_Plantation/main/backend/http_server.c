@@ -37,6 +37,7 @@ extern QueueHandle_t pump_queue;
 extern QueueHandle_t fan_queue;
 extern QueueHandle_t soil_queue;
 extern QueueHandle_t moisture_enabled_queue;
+extern QueueHandle_t tempThresholdQueue;
 
 extern QueueHandle_t dynamicLightQueue;
 extern QueueHandle_t luxOrIntensityQueue;
@@ -418,6 +419,10 @@ esp_err_t config_set_handler(httpd_req_t *req)
     if (xQueueOverwrite(lightLuxThresholdQueue, &lightLuxThreshold) != pdPASS)
     {
         ESP_LOGE("CONFIG_HANDLER", "Fehler beim Überschreiben der lightLuxThresholdQueue");
+    uint8_t tmp_thres = new_config.temp_threshold;
+    if (xQueueOverwrite(tempThresholdQueue, &tmp_thres) != pdPASS)
+    {
+        ESP_LOGE("CONFIG_HANDLER", "Fehler beim Überschreiben der tempThresholdQueue");
         httpd_resp_send_500(req);
         return ESP_FAIL;
     }

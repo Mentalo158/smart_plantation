@@ -9,15 +9,19 @@
 static const char *TAG = "SNTP_CLIENT";
 static time_t current_time;
 
-
 void sntp_inits()
 {
+    if (esp_sntp_enabled())
+    {
+        ESP_LOGW(TAG, "SNTP already running, stopping...");
+        esp_sntp_stop();
+    }
+
     ESP_LOGI(TAG, "Starting SNTP");
     esp_sntp_setoperatingmode(SNTP_OPMODE_POLL);
-    esp_sntp_setservername(0, "pool.ntp.org"); 
+    esp_sntp_setservername(0, "pool.ntp.org");
     esp_sntp_init();
 }
-
 
 void sntp_update_time()
 {
