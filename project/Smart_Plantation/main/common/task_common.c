@@ -162,18 +162,16 @@ void light_sensor_task(void *pvParameters)
 
         LightState state = get_light_state();
 
-<<<<<<< HEAD
-        if(state.lux_value == -1)
-=======
-        if (xQueueOverwrite(lightDataQueue, &state) != pdPASS)
->>>>>>> main
-        {
+        
+        
             if (xQueueOverwrite(lightDataQueue, &state) != pdPASS)
             {
-                ESP_LOGE("LightSensor", "Fehler beim Übertragen der Lichtdaten");
+                if (xQueueOverwrite(lightDataQueue, &state) != pdPASS)
+                {
+                    ESP_LOGE("LightSensor", "Fehler beim Übertragen der Lichtdaten");
+                }
             }
-        }
-
+        
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
@@ -190,15 +188,9 @@ void led_task(void *pvParameters)
 
     while (1)
     {
-<<<<<<< HEAD
-        if (xQueueReceive(led_queue, &led_data, portMAX_DELAY))
-        {
-=======
 
         if (xQueueReceive(led_queue, &led_data, portMAX_DELAY))
         {
-
->>>>>>> main
             rgb_set_color(led_data.red, led_data.green, led_data.blue);
             printf("LED updated: R=%d, G=%d, B=%d\n", led_data.red, led_data.green, led_data.blue);
         }
@@ -275,7 +267,7 @@ void pump_control_task(void *pvParameter)
 void fan_control_task(void *pvParameters)
 {
     config_t initial_config;
-    load_config(&initial_config); // Lade initiale Konfiguration
+    load_config(&initial_config); 
 
     dht_data_t dhtData;
 
@@ -285,14 +277,14 @@ void fan_control_task(void *pvParameters)
 
     fan_init(FAN_PWM_PIN, FAN_CONTROL_PIN, FAN_TACH_PIN);
 
-    // Temperatur-Schwellenwert aus der Konfiguration
+    
     int tempThreshold = initial_config.temp_threshold;
 
     while (1)
     {
         uint8_t tempEnabledFlag;
 
-        // Prüfen, ob der Lüfter aktiviert/deaktiviert werden soll
+        
         if (xQueueReceive(fan_queue, &tempEnabledFlag, pdMS_TO_TICKS(100)))
         {
             isFanEnabled = (tempEnabledFlag != 0);
@@ -303,36 +295,36 @@ void fan_control_task(void *pvParameters)
             if (!fanRunning)
             {
                 fan_on(FAN_CONTROL_PIN, 0);
-                fanRunning = true; // Status aktualisieren
+                fanRunning = true; 
                 printf("Lüfter eingeschaltet.\n");
             }
 
             uint32_t rpm = fan_get_speed_rpm(pulses_per_revolution);
 
-            // RPM-Wert in die Queue schreiben
+            
             if (xQueueOverwrite(fanSpeedQueue, &rpm) != pdPASS)
             {
                 ESP_LOGE("Lüfter", "Fehler beim Übertragen der Lüftergeschwindigkeit");
             }
 
-            // Temperaturdaten prüfen
+            
             if (xQueuePeek(dhtDataQueue, &dhtData, pdMS_TO_TICKS(100)) == pdTRUE)
             {
-                // Prüfen, ob ein neuer Temperatur-Schwellenwert empfangen wird
+                
                 uint8_t newTempThreshold;
                 if (xQueueReceive(tempThresholdQueue, &newTempThreshold, pdMS_TO_TICKS(100)) == pdTRUE)
                 {
-                    tempThreshold = newTempThreshold; // Schwellenwert aktualisieren
+                    tempThreshold = newTempThreshold; 
                 }
 
-                // Berechnung der Lüftergeschwindigkeit basierend auf dem Temperatur-Schwellenwert
+                
                 int tempDifference = dhtData.temperature - tempThreshold;
                 int fan_speed = tempDifference * 10;
 
-                // Begrenzung der Lüftergeschwindigkeit
+                
                 fan_speed = (fan_speed > 255) ? 255 : (fan_speed < 30 ? 30 : fan_speed);
 
-                // Lüftergeschwindigkeit setzen
+                
                 fan_set_speed(fan_speed);
 
                 printf("Lüftergeschwindigkeit: %d (Temperatur: %.2f°C, Schwelle: %d°C, RPM: %ld)\n",
@@ -349,12 +341,14 @@ void fan_control_task(void *pvParameters)
             printf("Lüfter deaktiviert durch Benutzer.\n");
         }
 
-        vTaskDelay(pdMS_TO_TICKS(3000)); // 3 seconds delay
+        vTaskDelay(pdMS_TO_TICKS(3000)); 
     }
 }
 
 void dynamicLightTask(void *pvParameters)
 {
+    rgb_led_init(LEDC_OUTPUT_R_PIN, LEDC_OUTPUT_G_PIN, LEDC_OUTPUT_B_PIN);
+
     config_t initial_config;
     load_config(&initial_config);
 
@@ -419,7 +413,7 @@ void dynamicLightTask(void *pvParameters)
                 }
             }
         }
-        vTaskDelay(pdMS_TO_TICKS(10000)); // 10 seconds delay
+        vTaskDelay(pdMS_TO_TICKS(10000)); 
     }
 }
 
@@ -441,7 +435,7 @@ void webServerTask(void *pvParameters)
     }
 }
 
-// TODO Kommentare bearbeiten
+
 void init_queue()
 {
     moistureDataQueue = xQueueCreate(QUEUE_LENGTH, sizeof(float));

@@ -4,53 +4,65 @@
 #include <stdint.h>
 #include "driver/ledc.h"
 
-// LEDC Konfiguration für den Lüfter
-#define LEDC_CHANNEL_FAN LEDC_CHANNEL_3    // Kanal für den Lüfter (beispielsweise Kanal 3)
-#define LEDC_FAN_DUTY_RES LEDC_TIMER_8_BIT // 8 Bit Auflösung für den Lüfter
-#define LEDC_FAN_DUTY_MAX 255              // Maximaler Duty-Cycle (100%)
-#define LEDC_FAN_FREQUENCY 25000           // 25 kHz PWM-Frequenz für den Lüfter
-#define LEDC_MODE LEDC_HIGH_SPEED_MODE     // High-Speed Mode verwenden
-#define LEDC_TIMER LEDC_TIMER_0            // Verwende Timer 0
-#define LEDC_DUTY_RES LEDC_TIMER_8_BIT     // Duty-Resolution auf 8-Bit setzen
-#define LEDC_FREQUENCY 25000               // Frequenz von 25 kHz
+#define LEDC_CHANNEL_FAN LEDC_CHANNEL_3    /*!< LEDC Channel for Fan control */
+#define LEDC_FAN_DUTY_RES LEDC_TIMER_8_BIT /*!< Duty resolution for the fan (8-bit) */
+#define LEDC_FAN_DUTY_MAX 255              /*!< Maximum duty cycle for fan (255) */
+#define LEDC_FAN_FREQUENCY 25000           /*!< PWM frequency for fan (25kHz) */
+#define FAN_LEDC_MODE LEDC_HIGH_SPEED_MODE /*!< LEDC mode for fan (high speed) */
+#define LEDC_TIMER LEDC_TIMER_0            /*!< LEDC Timer used for fan */
+#define LEDC_DUTY_RES LEDC_TIMER_8_BIT     /*!< LEDC duty resolution (8-bit) */
 
 /**
- * @brief Initialisiert die Lüftersteuerung und den Tachometer.
+ * @brief Initializes the fan control and tachometer.
  *
- * @param pinFan Der GPIO-Pin, der mit dem PWM-Eingang des Lüfters verbunden ist.
- * @param pinControl Der GPIO-Pin, der den Transistor steuert (optional).
- * @param pinTach Der GPIO-Pin, der das Tachometer-Signal empfängt (optional).
+ * This function initializes the fan control, sets up PWM for speed control,
+ * and optionally configures the tachometer signal input.
+ *
+ * @param pinFan The GPIO pin connected to the fan's PWM input.
+ * @param pinControl The GPIO pin controlling the transistor (optional).
+ * @param pinTach The GPIO pin receiving the tachometer signal (optional).
  */
 void fan_init(int pinFan, int pinControl, int pinTach);
 
 /**
- * @brief Setzt die Lüftergeschwindigkeit.
+ * @brief Sets the fan speed.
  *
- * @param speed Lüftergeschwindigkeit (0 bis 255).
+ * This function sets the PWM duty cycle, which determines the fan speed.
+ * The speed can range from 0 (off) to 255 (maximum speed).
+ *
+ * @param speed The fan speed (0 to 255).
  */
 void fan_set_speed(uint8_t speed);
 
 /**
- * @brief Berechnet die Drehzahl des Lüfters basierend auf den Impulsen des Tachometers.
+ * @brief Calculates the fan speed in RPM based on tachometer pulses.
  *
- * @param pulses_per_revolution Die Anzahl der Impulse, die pro Umdrehung erzeugt werden.
+ * This function calculates the fan's rotations per minute (RPM) by counting
+ * the tachometer pulses. The number of pulses per revolution should be provided.
  *
- * @return Die Drehzahl in Umdrehungen pro Minute (RPM).
+ * @param pulses_per_revolution The number of pulses generated per fan revolution.
+ *
+ * @return The fan speed in rotations per minute (RPM).
  */
 uint32_t fan_get_speed_rpm(uint32_t pulses_per_revolution);
 
 /**
- * @brief Schaltet den Lüfter ein und setzt die Geschwindigkeit.
+ * @brief Turns the fan on and sets the speed.
  *
- * @param pinControl Der GPIO-Pin, der den Transistor steuert.
- * @param speed Die gewünschte Lüftergeschwindigkeit (0 bis 255).
+ * This function turns on the fan and sets its speed by controlling the
+ * transistor and adjusting the PWM duty cycle.
+ *
+ * @param pinControl The GPIO pin controlling the transistor.
+ * @param speed The desired fan speed (0 to 255).
  */
 void fan_on(int pinControl, uint8_t speed);
 
 /**
- * @brief Schaltet den Lüfter vollständig aus.
+ * @brief Turns off the fan completely.
  *
- * @param pinControl Der GPIO-Pin, der den Transistor steuert.
+ * This function turns off the fan by deactivating the transistor.
+ *
+ * @param pinControl The GPIO pin controlling the transistor.
  */
 void fan_off(int pinControl);
 

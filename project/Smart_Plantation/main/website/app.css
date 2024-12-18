@@ -1,17 +1,16 @@
-/* Allgemeine Stile */
+
 body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
     background-color: #e3f2fd;
-    /* Helles Blau als Hintergrundfarbe */
     line-height: 1.6;
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
-/* Logo */
+
 .logo-container {
     text-align: center;
     margin-top: 20px;
@@ -19,20 +18,18 @@ body {
 
 .logo-container img {
     width: 450px;
-    /* Breite anpassen */
     height: auto;
-    /* Höhe automatisch anpassen, um das Seitenverhältnis zu bewahren */
+   
 }
 
-/* Divider */
+
 .divider {
     width: 80%;
     border: 1px solid #90caf9;
-    /* Blauer Divider */
     margin: 20px 0;
 }
 
-/* Hauptcontainer */
+
 .container {
     display: flex;
     flex-wrap: wrap;
@@ -40,7 +37,7 @@ body {
     width: 80%;
 }
 
-/* Sensorcontainer */
+
 .sensor-container {
     display: flex;
     flex-direction: column;
@@ -54,15 +51,12 @@ body {
     margin: 10px;
 }
 
-/* Flexbox-Eigenschaften für die divs im Sensorcontainer */
+
 .sensor-container div {
     font-size: 20px;
     width: 100%;
 }
 
-
-
-/* Peripherals Container - Column Layout */
 .peripherals-container {
     display: flex;
     flex-direction: column;
@@ -77,6 +71,7 @@ body {
     gap: 15px;
 }
 
+
 .peripherals-container label,
 .peripherals-container input[type="number"],
 .peripherals-container input[type="color"],
@@ -90,7 +85,7 @@ body {
     font-weight: bold;
 }
 
-/* Eingabefelder */
+
 .peripherals-container input[type="number"] {
     width: 80%;
     padding: 10px;
@@ -99,7 +94,7 @@ body {
     font-size: 1em;
 }
 
-/* Eingabefeld für Farben */
+
 .peripherals-container input[type="color"] {
     border: 1px solid grey;
     width: 60px;
@@ -110,56 +105,53 @@ body {
     margin-right: 10px;
 }
 
-/* Wochentage mit vertikalem Schalter */
+
 #days {
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
     margin-bottom: 15px;
     justify-content: center;
-    /* Zentriert die Schalter */
+   
 }
 
-/* Label für Wochentage */
+
 #days label {
     font-size: 1em;
     display: flex;
     align-items: center;
-    /* Text und Schalter nebeneinander */
+   
 }
 
-/* Text der Wochentage */
+
 #days label span {
     margin-right: 10px;
-    /* Abstand zwischen Text und Schalter */
+   
 }
 
-/* Switch (unsichtbar, aber interaktiv) */
+
 .switch {
     opacity: 0;
     position: relative;
     width: 20px;
-    /* Breite des Schalters */
     height: 40px;
-    /* Höhe des Schalters */
     z-index: -1;
 }
 
-/* Slider (visuelle Darstellung des Schalters) */
+
 .slider {
     position: absolute;
     display: block;
     width: 20px;
     height: 50px;
     background-color: #90caf9;
-    /* Blau */
     border-radius: 25px;
     transition: 0.4s;
     cursor: pointer;
     margin-left: 25px;
 }
 
-/* Der kleine Kreis, der den Schalter darstellt */
+
 .slider:before {
     position: absolute;
     content: "";
@@ -173,95 +165,75 @@ body {
     transition: 0.4s;
 }
 
-/* Wenn der Schalter aktiv ist */
+
 .switch:checked+.slider {
     background-color: #0288d1;
-    /* Helleres Blau wenn aktiv */
+   
 }
 
 .switch:checked+.slider:before {
     transform: translateX(-50%) translateY(-35px);
-    /* Schaltet den Kreis nach oben */
+   
 }
 
-/* Zusätzliche Stile für das Layout */
+
 .switch:focus+.slider {
     box-shadow: 0 0 1px #0288d1;
 }
 
-/* Allgemeine Button-Stile */
+
 button {
     background-color: #0288d1;
-    /* Primärfarbe */
     color: #fff;
-    /* Weißer Text */
     border: none;
-    /* Kein Rand */
     border-radius: 4px;
-    /* Abgerundete Ecken */
     padding: 10px 20px;
-    /* Polsterung für größere Klickflächen */
     font-size: 1em;
-    /* Einheitliche Schriftgröße */
     cursor: pointer;
-    /* Zeiger für interaktive Elemente */
     transition: background-color 0.3s;
-    /* Weicher Hover-Effekt */
+   
 }
 
-/* Hover-Effekt für Buttons */
+
 button:hover {
     background-color: #0277bd;
-    /* Dunkleres Blau beim Hover */
+   
 }
 
-/* Deaktivierte Buttons */
+
 button:disabled {
     background-color: #bdbdbd;
-    /* Grau für deaktivierte Buttons */
     cursor: not-allowed;
-    /* Kein Pointer-Effekt */
 }
 
-/* Buttons in der Peripherals-Container-Sektion */
+
 .peripherals-container button {
     align-self: stretch;
-    /* Streckt den Button über die verfügbare Breite */
     margin-top: 10px;
-    /* Abstand zu den Elementen darüber */
 }
 
 #configForm {
     width: 100%;
 }
 
-/* Formular-Button */
+
 #configForm button {
     background-color: #0288d1;
-    /* Primärfarbe */
     color: #fff;
-    /* Weißer Text */
     border: none;
-    /* Kein Rand */
     border-radius: 4px;
-    /* Abgerundete Ecken */
     padding: 10px 20px;
-    /* Polsterung für größere Klickflächen */
     font-size: 1em;
-    /* Einheitliche Schriftgröße */
     cursor: pointer;
-    /* Zeiger für interaktive Elemente */
     transition: background-color 0.3s;
-    /* Weicher Hover-Effekt */
     width: 100%;
 }
 
 #configForm button:hover {
     background-color: #0277bd;
-    /* Dunkleres Blau beim Hover */
 }
 
-/* Responsive Design */
+
 @media (max-width: 768px) {
     .container {
         flex-direction: column;

@@ -7,7 +7,7 @@
 
 void rgb_led_init(int pinRed, int pinGreen, int pinBlue)
 {
-    // Timer-Konfiguration
+    
     ledc_timer_config_t ledc_timer = {
         .speed_mode = LEDC_MODE,
         .timer_num = LEDC_TIMER,
@@ -17,7 +17,6 @@ void rgb_led_init(int pinRed, int pinGreen, int pinBlue)
     };
     ledc_timer_config(&ledc_timer);
 
-    // Rot
     ledc_channel_config_t ledc_channel_r = {
         .speed_mode = LEDC_MODE,
         .channel = LEDC_CHANNEL_R,
@@ -28,7 +27,6 @@ void rgb_led_init(int pinRed, int pinGreen, int pinBlue)
         .hpoint = 0};
     ledc_channel_config(&ledc_channel_r);
 
-    // Grün
     ledc_channel_config_t ledc_channel_g = {
         .speed_mode = LEDC_MODE,
         .channel = LEDC_CHANNEL_G,
@@ -39,7 +37,6 @@ void rgb_led_init(int pinRed, int pinGreen, int pinBlue)
         .hpoint = 0};
     ledc_channel_config(&ledc_channel_g);
 
-    // Blau
     ledc_channel_config_t ledc_channel_b = {
         .speed_mode = LEDC_MODE,
         .channel = LEDC_CHANNEL_B,

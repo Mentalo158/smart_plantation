@@ -38,7 +38,6 @@ extern QueueHandle_t fan_queue;
 extern QueueHandle_t soil_queue;
 extern QueueHandle_t moisture_enabled_queue;
 extern QueueHandle_t tempThresholdQueue;
-
 extern QueueHandle_t dynamicLightQueue;
 extern QueueHandle_t luxOrIntensityQueue;
 extern QueueHandle_t lightIntensityThresholdQueue;
@@ -418,7 +417,9 @@ esp_err_t config_set_handler(httpd_req_t *req)
     uint32_t lightLuxThreshold = new_config.luminance;
     if (xQueueOverwrite(lightLuxThresholdQueue, &lightLuxThreshold) != pdPASS)
     {
-        ESP_LOGE("CONFIG_HANDLER", "Fehler beim Überschreiben der lightLuxThresholdQueue");
+    ESP_LOGE("CONFIG_HANDLER", "Fehler beim Überschreiben der lightLuxThresholdQueue");
+    }
+
     uint8_t tmp_thres = new_config.temp_threshold;
     if (xQueueOverwrite(tempThresholdQueue, &tmp_thres) != pdPASS)
     {
@@ -435,6 +436,7 @@ esp_err_t config_set_handler(httpd_req_t *req)
     cJSON_Delete(json);
 
     return ESP_OK;
+
 }
 
 esp_err_t wifi_plug_switch_handler(httpd_req_t *req)
@@ -526,7 +528,7 @@ httpd_uri_t wifi_plug_switch_uri = {
     .handler = wifi_plug_switch_handler,
     .user_ctx = NULL};
 
-httpd_handle_t start_webserver(void)
+httpd_handle_t start_webserver()
 {
     httpd_handle_t http_server = NULL;              
     httpd_config_t config = HTTPD_DEFAULT_CONFIG(); 
