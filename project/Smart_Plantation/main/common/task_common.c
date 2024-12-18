@@ -26,6 +26,11 @@ QueueHandle_t soil_queue;
 QueueHandle_t moisture_enabled_queue;
 QueueHandle_t tempThresholdQueue;
 
+QueueHandle_t dynamicLightQueue;
+QueueHandle_t luxOrIntensityQueue;
+QueueHandle_t lightIntensityThresholdQueue;
+QueueHandle_t lightLuxThresholdQueue;
+
 void moisture_task(void *pvParameters)
 {
     adc_init(MOISTURE_CHANNEL, ADC_WIDTH_BIT_12, MOISTURE_ATTEN);
@@ -157,9 +162,16 @@ void light_sensor_task(void *pvParameters)
 
         LightState state = get_light_state();
 
+<<<<<<< HEAD
+        if(state.lux_value == -1)
+=======
         if (xQueueOverwrite(lightDataQueue, &state) != pdPASS)
+>>>>>>> main
         {
-            ESP_LOGE("LightSensor", "Fehler beim Übertragen der Lichtdaten");
+            if (xQueueOverwrite(lightDataQueue, &state) != pdPASS)
+            {
+                ESP_LOGE("LightSensor", "Fehler beim Übertragen der Lichtdaten");
+            }
         }
 
         vTaskDelay(pdMS_TO_TICKS(1000));
@@ -178,10 +190,15 @@ void led_task(void *pvParameters)
 
     while (1)
     {
+<<<<<<< HEAD
+        if (xQueueReceive(led_queue, &led_data, portMAX_DELAY))
+        {
+=======
 
         if (xQueueReceive(led_queue, &led_data, portMAX_DELAY))
         {
 
+>>>>>>> main
             rgb_set_color(led_data.red, led_data.green, led_data.blue);
             printf("LED updated: R=%d, G=%d, B=%d\n", led_data.red, led_data.green, led_data.blue);
         }
@@ -332,7 +349,77 @@ void fan_control_task(void *pvParameters)
             printf("Lüfter deaktiviert durch Benutzer.\n");
         }
 
-        vTaskDelay(pdMS_TO_TICKS(3000));
+        vTaskDelay(pdMS_TO_TICKS(3000)); // 3 seconds delay
+    }
+}
+
+void dynamicLightTask(void *pvParameters)
+{
+    config_t initial_config;
+    load_config(&initial_config);
+
+    bool isLuxOrIntensity = (initial_config.use_luminance_or_light_intensity != 0);
+    bool isDynamicLightningOn = (initial_config.use_dynamic_lightning != 0);
+    uint8_t lightIntensityThreshold = initial_config.light_intensity;
+    uint32_t lightLuxThreshold = initial_config.luminance;
+
+    while(1)
+    {
+        uint8_t dynamicLightFlag;
+        uint8_t luxOrIntensity;
+        uint8_t lightIntensityThres;
+        uint32_t lightLuxThres;
+
+        if (xQueueReceive(dynamicLightQueue, &dynamicLightFlag, pdMS_TO_TICKS(100)))
+        {
+            isDynamicLightningOn = (dynamicLightFlag != 0);
+        }
+        if (xQueueReceive(luxOrIntensityQueue, &luxOrIntensity, pdMS_TO_TICKS(100)))
+        {
+            isLuxOrIntensity = (luxOrIntensity != 0);
+        }
+
+        if (isDynamicLightningOn)
+        {
+            if (xQueueReceive(lightIntensityThresholdQueue, &lightIntensityThres, pdMS_TO_TICKS(100)))
+            {
+                lightIntensityThreshold = lightIntensityThres;
+            }
+
+            if (xQueueReceive(lightLuxThresholdQueue, &lightLuxThres, pdMS_TO_TICKS(100)))
+            {
+                lightLuxThreshold = lightLuxThres;
+            }
+
+            LightState lightState;
+
+            if (xQueuePeek(lightDataQueue, &lightState, 0) == pdTRUE)
+            {
+                if (isLuxOrIntensity)
+                {
+                    if (lightState.lux_value < lightLuxThreshold)
+                    {
+                        rgb_set_color(255,255,255);
+                    }
+                    else
+                    {
+                        rgb_set_color(0, 0, 0);
+                    }
+                }
+                else
+                {
+                    if (lightState.light_intensity < lightIntensityThreshold)
+                    {
+                        rgb_set_color(255, 255, 255);
+                    }
+                    else
+                    {
+                        rgb_set_color(0, 0, 0);
+                    }
+                }
+            }
+        }
+        vTaskDelay(pdMS_TO_TICKS(10000)); // 10 seconds delay
     }
 }
 
@@ -354,6 +441,7 @@ void webServerTask(void *pvParameters)
     }
 }
 
+// TODO Kommentare bearbeiten
 void init_queue()
 {
     moistureDataQueue = xQueueCreate(QUEUE_LENGTH, sizeof(float));
@@ -407,6 +495,30 @@ void init_queue()
     if (moisture_enabled_queue == NULL)
     {
         ESP_LOGE("Task_Common", "Moisture Enabled Queue creation failed!");
+    }
+
+    dynamicLightQueue = xQueueCreate(QUEUE_LENGTH, sizeof(uint8_t));
+    if (dynamicLightQueue == NULL)
+    {
+        ESP_LOGE("Task_Common", "Dynaminc Light Queue creation failed!");
+    }
+
+    luxOrIntensityQueue = xQueueCreate(QUEUE_LENGTH, sizeof(uint8_t));
+    if (luxOrIntensityQueue == NULL)
+    {
+        ESP_LOGE("Task_Common", "Lux or Intensity Queue creation failed!");
+    }
+
+    lightIntensityThresholdQueue = xQueueCreate(QUEUE_LENGTH, sizeof(uint8_t));
+    if (lightIntensityThresholdQueue == NULL)
+    {
+        ESP_LOGE("Task_Common", "lightIntensityThresholdQueue creation failed!");
+    }
+
+    lightLuxThresholdQueue = xQueueCreate(QUEUE_LENGTH, sizeof(uint32_t));
+    if (lightLuxThresholdQueue == NULL)
+    {
+        ESP_LOGE("Task_Common", "lightLuxThresholdQueue creation failed!");
     }
 
     tempThresholdQueue = xQueueCreate(QUEUE_LENGTH, sizeof(uint8_t));

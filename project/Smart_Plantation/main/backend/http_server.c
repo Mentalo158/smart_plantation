@@ -39,6 +39,11 @@ extern QueueHandle_t soil_queue;
 extern QueueHandle_t moisture_enabled_queue;
 extern QueueHandle_t tempThresholdQueue;
 
+extern QueueHandle_t dynamicLightQueue;
+extern QueueHandle_t luxOrIntensityQueue;
+extern QueueHandle_t lightIntensityThresholdQueue;
+extern QueueHandle_t lightLuxThresholdQueue;
+
 esp_err_t http_handler(httpd_req_t *req)
 {
     httpd_resp_set_type(req, "text/html");
@@ -363,18 +368,19 @@ esp_err_t config_set_handler(httpd_req_t *req)
         return ESP_FAIL;
     }
 
-    
-    led_color_t led_data;
-    led_data.red = new_config.red;
-    led_data.green = new_config.green;
-    led_data.blue = new_config.blue;
-
-    
-    if (xQueueSend(led_queue, &led_data, pdMS_TO_TICKS(10)) != pdTRUE)
+    if (new_config.use_dynamic_lightning != 0)
     {
-        ESP_LOGE("CONFIG_HANDLER", "Fehler beim Senden in die led_queue");
-        httpd_resp_send_500(req);
-        return ESP_FAIL;
+        led_color_t led_data;
+        led_data.red = new_config.red;
+        led_data.green = new_config.green;
+        led_data.blue = new_config.blue;
+
+        if (xQueueSend(led_queue, &led_data, pdMS_TO_TICKS(10)) != pdTRUE)
+        {
+            ESP_LOGE("CONFIG_HANDLER", "Fehler beim Senden in die led_queue");
+            httpd_resp_send_500(req);
+            return ESP_FAIL;
+        }
     }
 
     uint8_t soil_value = new_config.moisture_threshold;
@@ -385,6 +391,34 @@ esp_err_t config_set_handler(httpd_req_t *req)
         return ESP_FAIL;
     }
 
+    uint8_t dynamicLightFlag = new_config.use_dynamic_lightning;
+    if (xQueueOverwrite(dynamicLightQueue, &dynamicLightFlag) != pdPASS)
+    {
+        ESP_LOGE("CONFIG_HANDLER", "Fehler beim Überschreiben der dynamicLightQueue");
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+
+    uint8_t isLuxOrIntensity = new_config.use_luminance_or_light_intensity;
+    if (xQueueOverwrite(luxOrIntensityQueue, &isLuxOrIntensity) != pdPASS)
+    {
+        ESP_LOGE("CONFIG_HANDLER", "Fehler beim Überschreiben der luxOrIntensityQueue");
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+
+    uint8_t lightIntensity = new_config.light_intensity;
+    if (xQueueOverwrite(lightIntensityThresholdQueue, &lightIntensity) != pdPASS)
+    {
+        ESP_LOGE("CONFIG_HANDLER", "Fehler beim Überschreiben der lightIntensityThresholdQueue");
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+
+    uint32_t lightLuxThreshold = new_config.luminance;
+    if (xQueueOverwrite(lightLuxThresholdQueue, &lightLuxThreshold) != pdPASS)
+    {
+        ESP_LOGE("CONFIG_HANDLER", "Fehler beim Überschreiben der lightLuxThresholdQueue");
     uint8_t tmp_thres = new_config.temp_threshold;
     if (xQueueOverwrite(tempThresholdQueue, &tmp_thres) != pdPASS)
     {
@@ -395,7 +429,6 @@ esp_err_t config_set_handler(httpd_req_t *req)
 
     save_config(&new_config);
 
-    
     httpd_resp_send(req, "Konfiguration erfolgreich aktualisiert", HTTPD_RESP_USE_STRLEN);
 
     
