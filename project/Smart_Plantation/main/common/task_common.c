@@ -72,6 +72,7 @@ void pump_water_based_on_soil_task(void *pvParameters)
 
     while (1)
     {
+        tasmota_turn_off();
 
         uint8_t moisture_enabled_flag;
         if (xQueueReceive(moisture_enabled_queue, &moisture_enabled_flag, 0) == pdTRUE)

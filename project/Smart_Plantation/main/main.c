@@ -35,7 +35,5 @@ void app_main()
     xTaskCreatePinnedToCore(fan_control_task, "Fan Control Task", 2048, NULL, 4, NULL, 1);
     xTaskCreatePinnedToCore(pump_water_based_on_soil_task, "Pump Water Based on Soil Task", 4096, NULL, 4, NULL, 0);
     xTaskCreatePinnedToCore(webServerTask, "Web Server Task", 8192, NULL, 3, NULL, 1);
-
-    // TODO doesnt work lol
     //xTaskCreate(dynamicLightTask, "Dynamic Light Task", 4096, NULL, 3, NULL);
 }

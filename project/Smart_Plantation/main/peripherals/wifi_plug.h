@@ -31,4 +31,6 @@ typedef struct
  */
 esp_err_t tasmota_toggle_power(uint32_t duration_ms);
 
+esp_err_t tasmota_turn_off()
+
 #endif // WIFI_PLUG_H
