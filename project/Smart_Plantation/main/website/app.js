@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("colorPicker").value = rgbToHex(config.red || 0, config.green || 0, config.blue || 0);
 
             const lightModeButton = document.getElementById("switchLightMode");
-            lightModeButton.textContent = (config.use_luminance_or_light_intensity ? "Verwende Lux" : "Verwende Intensität").trim();
+            lightModeButton.textContent = (config.use_luminance_or_light_intensity ? "Verwende Lux"  : "Verwende Intensität").trim();
 
             const lightOptionButton = document.getElementById("toggleLightOption");
             lightOptionButton.textContent = (config.use_dynamic_lightning ? "Licht Option Aktivieren" : "Licht Option Deaktivieren").trim();
@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 checkbox.checked = !!(config.days & (1 << index));
             });
 
-            // Initiale Aktivierung/Deaktivierung von Feldern
+            
             initializeFieldStates(config);
         })
         .catch(error => {
@@ -47,20 +47,15 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function initializeFieldStates(config) {
-    // Kühlung
+    
     const coolingEnabled = config.temp_enabled;
     document.getElementById("tempThreshold").disabled = !coolingEnabled;
 
-    // Bewässerung
+    
     const moistureEnabled = config.moisture_enabled;
     document.getElementById("moistureThreshold").disabled = !moistureEnabled;
 
-    // Lichtmodi
-    const useLux = config.use_luminance_or_light_intensity;
-    document.getElementById("luxValue").disabled = !useLux;
-    document.getElementById("lightIntensity").disabled = useLux;
-
-    // Dynamisches Licht
+    
     const useDynamicLighting = config.use_dynamic_lightning;
     document.getElementById("luxValue").disabled = useDynamicLighting;
     document.getElementById("lightIntensity").disabled = useDynamicLighting;
@@ -87,55 +82,52 @@ document.getElementById('colorPicker').addEventListener('input', function () {
     document.getElementById('blue').value = rgb.b || 0;
 });
 
-// Kühlung-Toggle
+
 document.getElementById("toggleCooling").addEventListener("click", function () {
     const coolingButton = document.getElementById("toggleCooling");
     const currentState = coolingButton.textContent.trim();
     const newState = currentState === "Kühlung einschalten" ? "Kühlung ausschalten" : "Kühlung einschalten";
     coolingButton.textContent = newState;
 
-    // Aktivieren/Deaktivieren des Temperatur-Eingabefeldes
+    
     document.getElementById("tempThreshold").disabled = newState === "Kühlung einschalten";
 });
 
-// Automatische Bewässerung-Toggle
+
 document.getElementById("toggleMoisture").addEventListener("click", function () {
     const moistureButton = document.getElementById("toggleMoisture");
     const currentState = moistureButton.textContent.trim();
     const newState = currentState === "Automatische Bewässerung einschalten" ? "Automatische Bewässerung ausschalten" : "Automatische Bewässerung einschalten";
     moistureButton.textContent = newState;
 
-    // Aktivieren/Deaktivieren des Moisture-Eingabefeldes
+    
     document.getElementById("moistureThreshold").disabled = newState === "Automatische Bewässerung einschalten";
 });
 
-// Lichtmodus-Button
+
+
 document.getElementById('switchLightMode').addEventListener('click', function () {
     const lightModeButton = document.getElementById('switchLightMode');
     const currentMode = lightModeButton.textContent.trim();
     const newMode = currentMode === "Verwende Lux" ? "Verwende Intensität" : "Verwende Lux";
     lightModeButton.textContent = newMode;
-
-    // Umschalten der Aktivierung zwischen Lux- und Lichtintensitäts-Eingabefeldern
-    const useLux = newMode === "Verwende Lux";
-    document.getElementById('luxValue').disabled = !useLux;
-    document.getElementById('lightIntensity').disabled = useLux;
 });
 
-// Lichtoption-Toggle
+
+
 document.getElementById('toggleLightOption').addEventListener('click', function () {
     const lightOptionButton = document.getElementById('toggleLightOption');
     const currentState = lightOptionButton.textContent.trim();
     const newState = currentState === "Licht Option Deaktivieren" ? "Licht Option Aktivieren" : "Licht Option Deaktivieren";
     lightOptionButton.textContent = newState;
 
-    // Deaktivieren beider Felder, wenn dynamisches Licht aktiviert ist
+    
     const useDynamicLighting = newState === "Licht Option Aktivieren";
     document.getElementById('luxValue').disabled = useDynamicLighting;
     document.getElementById('lightIntensity').disabled = useDynamicLighting;
 });
 
-// Formular-Submit
+
 document.getElementById("configForm").addEventListener("submit", function (event) {
     event.preventDefault();
 

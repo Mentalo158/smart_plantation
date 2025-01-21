@@ -4,8 +4,8 @@
 #include "nvs.h"
 #include "config_storage.h"
 
-#define CONFIG_NAMESPACE "storage" // NVS-Speicherbereich für Konfigurationsdaten
-#define CONFIG_KEY "config_data"   // Schlüssel zum Speichern der Konfigurationsdaten
+#define CONFIG_NAMESPACE "storage" 
+#define CONFIG_KEY "config_data"   
 
 void save_config(config_t *config)
 {
@@ -18,7 +18,7 @@ void save_config(config_t *config)
         return;
     }
 
-    // Speichern der Konfiguration als Blob (gesamte Struktur auf einmal)
+    
     err = nvs_set_blob(nvs_handle, CONFIG_KEY, config, sizeof(config_t));
     if (err != ESP_OK)
     {
@@ -26,7 +26,7 @@ void save_config(config_t *config)
     }
     else
     {
-        // Finales Commit der Daten
+        
         err = nvs_commit(nvs_handle);
         if (err != ESP_OK)
         {
@@ -46,7 +46,7 @@ void load_config(config_t *config)
     {
         printf("Error (%s) opening NVS handle!\n", esp_err_to_name(err));
 
-        // Setze Standardwerte, wenn keine Konfiguration geladen werden kann
+        
         config->moisture_threshold = 50;
         config->moisture_enabled = 0;
         config->temp_threshold = 25;
@@ -66,7 +66,7 @@ void load_config(config_t *config)
         config->green = 255;
         config->blue = 255;
 
-        // Speichern der Standardwerte als Blob
+        
         err = nvs_set_blob(nvs_handle, CONFIG_KEY, config, sizeof(config_t));
         if (err != ESP_OK)
         {
@@ -80,13 +80,13 @@ void load_config(config_t *config)
         return;
     }
 
-    // Größe des Blobs ermitteln
+    
     size_t required_size = sizeof(config_t);
     err = nvs_get_blob(nvs_handle, CONFIG_KEY, config, &required_size);
 
     if (err == ESP_OK)
     {
-        // Konfiguration erfolgreich geladen
+        
         printf("Config geladen:\n");
         printf("Feuchtigkeitsschwelle: %d%%\n", config->moisture_threshold);
         printf("Feuchtigkeit aktiviert: %s\n", config->moisture_enabled ? "true" : "false");
@@ -97,22 +97,22 @@ void load_config(config_t *config)
         printf("Luminanz oder Lichtintensität verwenden: %s\n", config->use_luminance_or_light_intensity ? "true" : "false");
         printf("Dynamische Beleuchtung verwenden: %s\n", config->use_dynamic_lightning ? "true" : "false");
 
-        // Ausgabe der Zeiten
+        
         for (int i = 0; i < MAX_TIMES; i++)
         {
             printf("Zeit %d: %02d:%02d\n", i + 1, config->hours[i], config->minutes[i]);
         }
 
-        // Ausgabe der Wochentage (Bitmaske)
+        
         printf("Wochentage: 0x%02X\n", config->days);
 
-        // RGB-Werte der LED
+        
         printf("LED Farbe - Rot: %d, Grün: %d, Blau: %d\n", config->red, config->green, config->blue);
     }
     else
     {
         printf("Keine gespeicherte Config gefunden, Standardwerte verwenden\n");
-        // Im Fehlerfall Standardwerte setzen
+        
         config->moisture_threshold = 50;
         config->moisture_enabled = 0;
         config->temp_threshold = 25;
