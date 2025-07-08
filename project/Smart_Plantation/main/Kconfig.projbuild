@@ -2,19 +2,19 @@ menu "WiFi Configuration"
 
 config WIFI_SSID
     string "WiFi SSID"
-    default "FH-Kiel-IoT-NAT"
+    default ""
     help
         Enter the WiFi SSID that the device should connect to.
 
 config WIFI_PASSWORD
     string "WiFi Password"
-    default "!FH-NAT-001!"
+    default ""
     help
         Enter the WiFi password for the SSID.
 
 config WIFI_PLUG_IP
     string "WiFi Plug IP"
-    default "192.168.100.161"
+    default ""
     help
         Enter the IP address of your WiFi plug.
 
